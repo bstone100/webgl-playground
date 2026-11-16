@@ -2,7 +2,7 @@ import { Shape } from "./shape.js";
 import {Point3} from "../math/point3.js";
 
 export class Cone extends Shape {
-    constructor(props) {
+    constructor(props = {}) {
         super(props);
 
         const {

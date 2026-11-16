@@ -1,18 +1,18 @@
 import { Shape } from "./shape.js";
 
 export class Box extends Shape {
-    constructor(props) {
+    constructor(props = {}) {
         super(props);
 
         const {
-            width,
-            height,
-            depth
+            width = 0.5,
+            height = 0.5,
+            depth = 0.5
         } = props;
 
-        this.width = width ? width : 0.5;
-        this.height = height ? height : 0.5;
-        this.depth = depth ? depth : 0.5;
+        this.width = width;
+        this.height = height;
+        this.depth = depth;
     }
 
     // 8 vertices

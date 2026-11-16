@@ -2,16 +2,16 @@ import {Shape} from "./shape.js";
 import {Point3} from "../math/point3.js";
 
 export class Sphere extends Shape {
-    constructor(props) {
+    constructor(props = {}) {
         super(props);
 
         const {
-            radius,
-            resolution
+            radius = 0.25,
+            resolution = 25
         } = props;
 
-        this.radius = radius ? radius : 0.25;
-        this.resolution = resolution ? Math.max(resolution, 4): 25;
+        this.radius = radius;
+        this.resolution = Math.max(resolution, 4);
     }
 
     // I'm going to go 360 degrees around the xz axis and 360 degrees around the xy axis

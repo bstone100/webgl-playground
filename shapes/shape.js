@@ -4,9 +4,9 @@ export class Shape {
     constructor(props) {
 
         const {
-            transform
+            transform = new Mat4
         } = props;
 
-        this.transform = transform ? transform : new Mat4;
+        this.transform = transform;
     }
 }

@@ -2,18 +2,16 @@ import { Shape } from "./shape.js";
 import {Point2} from "../math/point2.js";
 
 export class Circle extends Shape {
-    constructor(props) {
+    constructor(props = {}) {
         super(props);
 
         const {
-            radius,
-            resolution // how many triangles to build the circle out of
+            radius = 0.25,
+            resolution = 25 // how many triangles to build the circle out of
         } = props;
 
-        this.radius = radius ? radius : 0.25;
-
-        // must be minimum 4
-        this.resolution = resolution ? Math.max(resolution, 4) : 25;
+        this.radius = radius;
+        this.resolution = Math.max(resolution, 4);
     }
 
     // we will be making n triangles

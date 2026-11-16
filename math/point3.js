@@ -12,7 +12,7 @@ export class Point3 {
     }
 
     times(multiplier) {
-        return new Point3({
+        return new this.constructor({
             x: this.x * multiplier,
             y: this.y * multiplier,
             z: this.z * multiplier

@@ -3,16 +3,16 @@ import { Shape } from "./shape.js";
 // a rectangle just needs a width and height
 
 export class Rectangle extends Shape {
-    constructor(props) {
+    constructor(props = {}) {
         super(props);
 
         const {
-            width,
-            height
+            width = 0.5,
+            height = 0.5
         } = props;
 
-        this.width = width ? width : 0.5;
-        this.height = height ? height : 0.5;
+        this.width = width;
+        this.height = height;
     }
 
     // 4 vertices for each corner

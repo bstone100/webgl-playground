@@ -33,6 +33,7 @@ export class Box extends Shape {
     }
 
     // 6 faces, 2 triangles per face, 3 indices per triangle = 6 * 2 * 3 = 36 indices
+    // NOTE: may need to revisit this and ensure the triangles are all counterclockwise with respect to the surface normal
     get indices() {
         return [
             // top face

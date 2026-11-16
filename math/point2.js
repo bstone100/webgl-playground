@@ -10,4 +10,5 @@ export class Point2 {
             y: this.y * multiplier
         });
     }
+
 }

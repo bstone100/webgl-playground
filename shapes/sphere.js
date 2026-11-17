@@ -1,7 +1,7 @@
-import {Shape} from "./shape.js";
 import {Point3} from "../math/point3.js";
+import {SceneNode} from "../scene-node.js";
 
-export class Sphere extends Shape {
+export class Sphere extends SceneNode {
     constructor(props = {}) {
         super(props);
 

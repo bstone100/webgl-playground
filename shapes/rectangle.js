@@ -1,8 +1,8 @@
-import { Shape } from "./shape.js";
+import {SceneNode} from "../scene-node.js";
 
 // a rectangle just needs a width and height
 
-export class Rectangle extends Shape {
+export class Rectangle extends SceneNode {
     constructor(props = {}) {
         super(props);
 

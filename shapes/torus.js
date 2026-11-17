@@ -1,8 +1,7 @@
-import { Shape } from "./shape.js";
-import {Point3} from "../math/point3.js";
 import {Vec3} from "../math/vec3.js";
+import {SceneNode} from "../scene-node.js";
 
-export class Torus extends Shape {
+export class Torus extends SceneNode {
     constructor(props = {}) {
         super(props);
 

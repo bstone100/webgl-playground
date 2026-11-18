@@ -131,6 +131,25 @@ export class Box extends SceneObject {
             );
         }
 
+        // let's now pass the view matrix in as a uniform
+        // the view matrix is the inverse of the camera's transform matrix
+        // let's assume the scene has a camera
+        const camera = scene.camera;
+        const viewMatrix = camera.transform.toInverse();
+
+        this.gl.uniformMatrix4fv(
+            this.gl.getUniformLocation(this._shaderProgram, "u_viewMatrix"),
+            viewMatrix.toArray()
+        );
+
+        // pass an ambient light color
+        const ambientLightColor = scene.ambientLightColor;
+        this.gl.uniform4fv(
+            this.gl.getUniformLocation(this._shaderProgram, "u_ambientLightColor"),
+            ambientLightColor.toArray()
+        );
+
+
         // let's pass an object color uniform
 
         const colorUniformLocation = this.gl.getUniformLocation(this._shaderProgram, "u_objectColor");

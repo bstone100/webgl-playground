@@ -45,6 +45,29 @@ export class Mat4 {
         return arr;
     }
 
+    toInverse() {
+        return new Mat4({
+            A: new Vec4({
+                x: this.m[0][0],
+                y: this.m[1][0],
+                z: this.m[2][0],
+                w: -this.T.dot(this.X)
+            }),
+            B: new Vec4({
+                x: this.m[0][1],
+                y: this.m[1][1],
+                z: this.m[2][1],
+                w: -this.T.dot(this.Y)
+            }),
+            C: new Vec4({
+                x: this.m[0][2],
+                y: this.m[1][2],
+                z: this.m[2][2],
+                w: -this.T.dot(this.Z)
+            })
+        });
+    }
+
     get X() {
         return new Vec4({
             x: this.m[0][0],

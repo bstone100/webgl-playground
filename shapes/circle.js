@@ -1,7 +1,7 @@
 import {Point2} from "../math/point2.js";
-import {SceneNode} from "../scene-node.js";
+import {SceneObject} from "../scene-object.js";
 
-export class Circle extends SceneNode {
+export class Circle extends SceneObject {
     constructor(props = {}) {
         super(props);
 

@@ -1,9 +1,9 @@
-import {SceneNode} from "../scene-node.js";
+import {SceneObject} from "../scene-object.js";
 
-const vertexGLSL = await fetch("./boxVertexShader.glsl").then(res => res.text());
-const fragmentGLSL = await fetch("./boxFragmentShader.glsl").then(res => res.text());
+const vertexGLSL = await fetch("./box.vert.glsl").then(res => res.text());
+const fragmentGLSL = await fetch("./box.frag.glsl").then(res => res.text());
 
-export class Box extends SceneNode {
+export class Box extends SceneObject {
     constructor(gl, props = {}) {
         super(gl, props);
 
@@ -52,14 +52,89 @@ export class Box extends SceneNode {
     }
 
     // called every frame
-    draw() {
+    // let's say that a scene object is passed here with all info we need to render this object
+    draw(scene) {
+        // bind attributes here
+
         // this code links the vertex buffer on the GPU to the correct attribute in the vertex shader
         this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this._vertexBuffer);
         const posAttribLocation = this.gl.getAttribLocation(this._shaderProgram, "a_position");
         this.gl.vertexAttribPointer(posAttribLocation, 3, this.gl.FLOAT, false, 0, 0);
         this.gl.enableVertexAttribArray(posAttribLocation);
 
+        // this tells the gpu to pull indices from our index buffer
         this.gl.bindBuffer(this.gl.ELEMENT_ARRAY_BUFFER, this._indexBuffer);
+
+        this.gl.useProgram(this._shaderProgram);
+
+        // set uniforms here
+
+        // I think each light in our scene needs to be passed into the shaders as a uniform
+        // for now we can just set some common properties
+        // so we will need to have access here to the lights and camera
+
+        // we need to pull all the lights from the scene and then pass them to the shader program
+        // we need to put a limit on the number of lights as well as tell the shader how many lights have been passed, and also what kind of lights
+
+        // let's just assume that scene has a pointLights array and a spotLights array
+        const pointLights = scene.pointLights;
+        const spotLights = scene.spotLights;
+        // pass them as uniforms
+
+        const maxLights = 10;
+        // just grab the first 10
+        const spotLightCount = Math.min(spotLights.length, maxLights);
+
+        this.gl.uniform1i(
+            this.gl.getUniformLocation(this._shaderProgram, "u_spotLightCount"),
+            spotLightCount
+        );
+
+        // to fill a uniform that is an array of a struct we need to do it one property at a time
+        for (let i = 0; i < spotLightCount; i++) {
+            const spotLight = spotLights[i];
+            // set each of the properties
+            this.gl.uniform4fv(
+                this.gl.getUniformLocation(this._shaderProgram, `u_spotLights[${i}].position`),
+                spotLight.transform.T.toArray() // pull the translation out of the spot light's transform
+            );
+        }
+
+
+        // struct PointLight {
+        //     vec3 position;
+        //     vec3 color;
+        // };
+        //
+        // struct SpotLight {
+        //     vec3 position;
+        //     vec3 direction;
+        //     vec3 color;
+        //     float innerCutoffAngle;
+        //     float outerCutoffAngle;
+        // };
+        //
+        // #define MAX_POINT_LIGHTS 10
+        // #define MAX_SPOT_LIGHTS 10
+        //
+        // uniform int u_spotLightCount;
+        // uniform SpotLight u_spotLights[MAX_SPOT_LIGHTS];
+        //
+        // uniform int u_pointLightCount;
+        // uniform PointLight u_pointLights[MAX_POINT_LIGHTS];
+
+        // let's pass an object color uniform
+
+        const colorUniformLocation = this.gl.getUniformLocation(this._shaderProgram, "u_objectColor");
+        this.gl.uniform4fv(colorUniformLocation, this.objectColor.toArray()); // pass red for now
+
+        // let's pass this object's transform matrix
+        const transformUniformLocation = this.gl.getUniformLocation(this._shaderProgram, "u_objectTransform");
+        this.gl.uniformMatrix4fv(transformUniformLocation, false, this.transform.toArray());
+
+        // now finally draw
+        // the count is the number of indices, unsigned short is the type of the indices (Uint16)
+        this.gl.drawElements(this.gl.TRIANGLES, 36, this.gl.UNSIGNED_SHORT, 0);
     }
 
     get width() {

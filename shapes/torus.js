@@ -1,7 +1,7 @@
 import {Vec3} from "../math/vec3.js";
-import {SceneNode} from "../scene-node.js";
+import {SceneObject} from "../scene-object.js";
 
-export class Torus extends SceneNode {
+export class Torus extends SceneObject {
     constructor(props = {}) {
         super(props);
 

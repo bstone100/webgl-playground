@@ -20,6 +20,15 @@ export class Vec4 {
         if (!this.w) this.w = 0;
     }
 
+    toArray() {
+        const arr = new Float32Array(4);
+        arr[0] = this.x;
+        arr[1] = this.y;
+        arr[2] = this.z;
+        arr[3] = this.w;
+        return arr;
+    }
+
     plus(val) {
         if (typeof val === "number") {
             return new this.constructor({

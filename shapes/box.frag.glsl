@@ -5,14 +5,13 @@ varying vec4 v_worldPos;
 uniform vec4 u_objectColor;
 
 struct PointLight {
-    vec3 position;
-    vec3 color;
+    mat4 transform;
+    vec4 color;
 };
 
 struct SpotLight {
-    vec3 position;
-    vec3 direction;
-    vec3 color;
+    mat4 transform;
+    vec4 color;
     float innerCutoffAngle;
     float outerCutoffAngle;
 };

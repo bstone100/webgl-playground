@@ -84,6 +84,7 @@ export class Box extends SceneObject {
         const maxLights = 10;
         // just grab the first 10
         const spotLightCount = Math.min(spotLights.length, maxLights);
+        const pointLightCount = Math.min(pointLights.length, maxLights);
 
         this.gl.uniform1i(
             this.gl.getUniformLocation(this._shaderProgram, "u_spotLightCount"),
@@ -93,40 +94,47 @@ export class Box extends SceneObject {
         // to fill a uniform that is an array of a struct we need to do it one property at a time
         for (let i = 0; i < spotLightCount; i++) {
             const spotLight = spotLights[i];
-            // set each of the properties
+            this.gl.uniformMatrix4fv(
+                this.gl.getUniformLocation(this._shaderProgram, `u_spotLights[${i}].transform`),
+                spotLight.transform.toArray()
+            );
             this.gl.uniform4fv(
-                this.gl.getUniformLocation(this._shaderProgram, `u_spotLights[${i}].position`),
-                spotLight.transform.T.toArray() // pull the translation out of the spot light's transform
+                this.gl.getUniformLocation(this._shaderProgram, `u_spotLights[${i}].color`),
+                spotLight.lightColor.toArray()
+            );
+            this.gl.uniform1f(
+                this.gl.getUniformLocation(this._shaderProgram, `u_spotLights[${i}].innerCutoffAngle`),
+                spotLight.innerCutoffAngleDegrees
+            );
+            this.gl.uniform1f(
+                this.gl.getUniformLocation(this._shaderProgram, `u_spotLights[${i}].outerCutoffAngle`),
+                spotLight.outerCutoffAngleDegrees
             );
         }
 
+        // now pack the point lights
 
-        // struct PointLight {
-        //     vec3 position;
-        //     vec3 color;
-        // };
-        //
-        // struct SpotLight {
-        //     vec3 position;
-        //     vec3 direction;
-        //     vec3 color;
-        //     float innerCutoffAngle;
-        //     float outerCutoffAngle;
-        // };
-        //
-        // #define MAX_POINT_LIGHTS 10
-        // #define MAX_SPOT_LIGHTS 10
-        //
-        // uniform int u_spotLightCount;
-        // uniform SpotLight u_spotLights[MAX_SPOT_LIGHTS];
-        //
-        // uniform int u_pointLightCount;
-        // uniform PointLight u_pointLights[MAX_POINT_LIGHTS];
+        this.gl.uniform1i(
+            this.gl.getUniformLocation(this._shaderProgram, "u_pointLightCount"),
+            pointLightCount
+        );
+
+        for (let i = 0; i < pointLightCount; i++) {
+            const pointLight = pointLights[i];
+            this.gl.uniformMatrix4fv(
+                this.gl.getUniformLocation(this._shaderProgram, `u_pointLights[${i}].transform`),
+                pointLight.transform.toArray()
+            );
+            this.gl.uniform4fv(
+                this.gl.getUniformLocation(this._shaderProgram, `u_pointLights[${i}].color`),
+                pointLight.lightColor.toArray()
+            );
+        }
 
         // let's pass an object color uniform
 
         const colorUniformLocation = this.gl.getUniformLocation(this._shaderProgram, "u_objectColor");
-        this.gl.uniform4fv(colorUniformLocation, this.objectColor.toArray()); // pass red for now
+        this.gl.uniform4fv(colorUniformLocation, this.objectColor.toArray());
 
         // let's pass this object's transform matrix
         const transformUniformLocation = this.gl.getUniformLocation(this._shaderProgram, "u_objectTransform");

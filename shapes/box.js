@@ -27,6 +27,11 @@ export class Box extends SceneObject {
         this._vertexBuffer = this.gl.createBuffer();
         this._updateVertexBuffer();
 
+        // make a GPU buffer for the normals
+        this._normalBuffer = this.gl.createBuffer();
+        this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this._normalBuffer);
+        this.gl.bufferData(this.gl.ARRAY_BUFFER, new Float32Array(this._normals), this.gl.STATIC_DRAW);
+
         // another buffer in GPU memory
         this._indexBuffer = this.gl.createBuffer();
         this.gl.bindBuffer(this.gl.ELEMENT_ARRAY_BUFFER, this._indexBuffer);
@@ -61,6 +66,12 @@ export class Box extends SceneObject {
         const posAttribLocation = this.gl.getAttribLocation(this._shaderProgram, "a_position");
         this.gl.vertexAttribPointer(posAttribLocation, 3, this.gl.FLOAT, false, 0, 0);
         this.gl.enableVertexAttribArray(posAttribLocation);
+
+        // also link the normal buffer to an attribute
+        this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this._normalBuffer);
+        const normalAttribLocation = this.gl.getAttribLocation(this._shaderProgram, "a_normal");
+        this.gl.vertexAttribPointer(normalAttribLocation, 3, this.gl.FLOAT, false, 0, 0);
+        this.gl.enableVertexAttribArray(normalAttribLocation);
 
         // this tells the gpu to pull indices from our index buffer
         this.gl.bindBuffer(this.gl.ELEMENT_ARRAY_BUFFER, this._indexBuffer);
@@ -142,6 +153,12 @@ export class Box extends SceneObject {
             viewMatrix.toArray()
         );
 
+        // we also should pass the camera's transform since it's needed to calculate the specular
+        this.gl.uniformMatrix4fv(
+            this.gl.getUniformLocation(this._shaderProgram, "u_cameraTransform"),
+            camera.transform.toArray()
+        );
+
         // pass an ambient light color
         const ambientLightColor = scene.ambientLightColor;
         this.gl.uniform4fv(
@@ -194,6 +211,7 @@ export class Box extends SceneObject {
         this._updateVertexBuffer();
     }
 
+    // okay we need to have 4 vertices per face so that we can give each vertex its own normal
     _updateVertices() {
         this._vertices = [
             // 4 corners of top face
@@ -207,7 +225,101 @@ export class Box extends SceneObject {
             this._width/2, -this._height/2, -this._depth/2 // +x, -y, -z   5   bottom left of bottom face
             -this._width/2, -this._height/2, -this._depth/2, // -x, -y, -z 6   bottom right of bottom face
             -this._width/2, -this._height/2, this._depth/2, // -x, -y, +z  7   top right of bottom face
+
+            // 4 corners of right face
+            this._width/2, this._height/2, this._depth/2, // +x +y +z    top left of right face 8
+            this._width/2, -this._height/2, this._depth/2, // +x, -y, +z  bottom left of right face 9
+            this._width/2, -this._height/2, -this._depth/2, // +x, -y, -z  bottom right 10
+            this._width/2, this._height/2, -this._depth/2, // +x, +y, -z top right  11
+
+            // left face
+            // top left
+            // -x +y -z
+            // bottom left
+            // -x -y -z
+            // bottom right
+            // -x -y +z
+            // top right
+            // -x +y +z
+            -this._width/2, this._height/2, -this._depth/2, //  12
+            -this._width/2, -this._height/2, -this._depth/2, // 13
+            -this._width/2, -this._height/2, this._depth/2, //  14
+            -this._width/2, this._height/2, this._depth/2, //   15
+
+            // front face
+            // top left
+            // -x +y +z
+            // bottom left
+            // -x -y +z
+            // bottom right
+            // +x -y +z
+            // top right
+            // +x +y +z
+            -this._width/2, this._height/2, this._depth/2, //   16
+            -this._width/2, -this._height/2, this._depth/2, //  17
+            this._width/2, -this._height/2, this._depth/2, //   18
+            this._width/2, this._height/2, this._depth/2, //    19
+
+            // back face
+            // top left
+            // +x +y -z
+            // bottom left
+            // +x -y -z
+            // bottom right
+            // -x -y -z
+            // top right
+            // -x +y -z
+            this._width/2, this._height/2, -this._depth/2, //   20
+            this._width/2, -this._height/2, -this._depth/2, //  21
+            -this._width/2, -this._height/2, -this._depth/2, // 22
+            -this._width/2, this._height/2, -this._depth/2 //   23
         ];
+    }
+
+    // normals
+    // each vertex gets a normal
+    _normals = [
+        // top face
+        // all pointing up
+        0, 1, 0,
+        0, 1, 0,
+        0, 1, 0,
+        0, 1, 0,
+
+        // bottom face
+        // pointing down
+        0, -1, 0,
+        0, -1, 0,
+        0, -1, 0,
+        0, -1, 0,
+
+        // right face
+        1, 0, 0,
+        1, 0, 0,
+        1, 0, 0,
+        1, 0, 0,
+
+        // left face
+        -1, 0, 0,
+        -1, 0, 0,
+        -1, 0, 0,
+        -1, 0, 0,
+
+        // front face
+        0, 0, 1,
+        0, 0, 1,
+        0, 0, 1,
+        0, 0, 1,
+
+        // back face
+        0, 0, -1,
+        0, 0, -1,
+        0, 0, -1,
+        0, 0, -1
+    ];
+
+    get normals() {
+        return this._normals;
     }
 
     _updateVertexBuffer() {
@@ -220,41 +332,36 @@ export class Box extends SceneObject {
         return this._vertices;
     }
 
-    // 6 faces, 2 triangles per face, 3 indices per triangle = 6 * 2 * 3 = 36 indices
-    // NOTE: may need to revisit this and ensure the triangles are all counterclockwise with respect to the surface normal
-
+    // okay let's redo the indices
+    // there are 6 faces, 24 vertices, 2 triangles per face, 12 triangles, 3 vertices per triangle, 36 indices
     _indices = [
         // top face
-        // bottom left triangle of top face
+        // bottom left triangle
         0, 1, 2,
-        // top right triangle of top face
+        // top left triangle
         0, 2, 3,
 
         // bottom face
-        // bottom left triangle of bottom face
-        4, 5, 6,
-        // top right triangle of bottom face
-        4, 6, 7,
+        // make sure to go counterclockwise relative to the normal
+        4, 6, 5,
+        4, 7, 6,
 
-        // right face
-        // bottom left triangle of right face
-        0, 4, 5,
-        // top right triangle of right face
-        0, 5, 1,
+        // right face 8, 9, 10, 11
+        8, 9, 10,
+        8, 10, 11,
 
-        // left face
-        // bottom left triangle of left face
-        2, 6, 7,
-        2, 7, 3,
+        // left face 12, 13, 14, 15
+        12, 13, 14,
+        12, 14, 15,
 
-        // front face
-        // bottom left triangle of front face
-        3, 7, 4,
-        3, 4, 0,
+        // front face 16 17 18 19
+        16, 17, 18,
+        16, 18, 19,
 
-        // back face
-        1, 5, 6,
-        1, 6, 2
+        // back face 20, 21, 22, 23
+        20, 21, 22,
+        20, 22, 23
+
     ];
 
     get indices() {

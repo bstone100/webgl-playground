@@ -145,6 +145,7 @@ export class Box extends SceneObject {
         // let's now pass the view matrix in as a uniform
         // the view matrix is the inverse of the camera's transform matrix
         // let's assume the scene has a camera
+        // there might be multiple cameras but one of them will be considered active
         const camera = scene.camera;
         const viewMatrix = camera.transform.toInverse();
 
@@ -157,6 +158,15 @@ export class Box extends SceneObject {
         this.gl.uniformMatrix4fv(
             this.gl.getUniformLocation(this._shaderProgram, "u_cameraTransform"),
             camera.transform.toArray()
+        );
+
+        // also pass in the projection matrix
+        const aspectRatio = this.gl.canvas.width / this.gl.canvas.height;
+        const near = 0.1;
+        const far = 1000;
+        this.gl.uniformMatrix4fv(
+            this.gl.getUniformLocation(this._shaderProgram, "u_projectionMatrix"),
+            camera.getPerspective(aspectRatio, near, far).toArray()
         );
 
         // pass an ambient light color

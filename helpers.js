@@ -51,6 +51,9 @@ export function drawTriangle(gl, vertices, color) {
     gl.drawArrays(primitiveType, offset, count);
 }
 
+export function degreesToRadians(degrees) {
+    return degrees / 180 * Math.PI;
+}
 
 
 

@@ -3,15 +3,19 @@ import {Vec4} from "./vec4.js";
 export class Mat4 {
     constructor(props) {
         const {
-            X, Y, Z, T, A, B, C, D
+            X, Y, Z, T, A, B, C, D, m
         } = props;
 
-        this.m = [
-            [1, 0, 0, 0],
-            [0, 1, 0, 0],
-            [0, 0, 1, 0],
-            [0, 0, 0, 1]
-        ];
+        if (m) {
+            this.m = m;
+        } else {
+            this.m = [
+                [1, 0, 0, 0],
+                [0, 1, 0, 0],
+                [0, 0, 1, 0],
+                [0, 0, 0, 1]
+            ];
+        }
 
         if (X) this.X = X;
         if (Y) this.Y = Y;

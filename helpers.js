@@ -42,8 +42,6 @@ export function createProgram(gl, vertexShader, fragmentShader) {
     gl.deleteProgram(program);
 }
 
-
-
 export function degreesToRadians(degrees) {
     return degrees / 180 * Math.PI;
 }

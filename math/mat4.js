@@ -1,10 +1,12 @@
 import {Vec4} from "./vec4.js";
 import {degreesToRadians} from "../helpers.js";
+import {Vec3} from "./vec3.js";
 
 export class Mat4 {
     constructor(props) {
         const {
-            X, Y, Z, T, A, B, C, D, m, operations
+            // I'm providing various ways to build a matrix because I'm nice
+            X, Y, Z, T, A, B, C, D, m, operations, position, lookAt
         } = props;
 
         if (m) {
@@ -41,6 +43,26 @@ export class Mat4 {
                     this.m = transform.times(this).m;
                 }
             }
+        }
+
+        if (position) {
+            if (position.x) this.m[0][3] = position.x;
+            if (position.y) this.m[1][3] = position.y;
+            if (position.z) this.m[2][3] = position.z;
+        }
+
+        if (lookAt) {
+            // in this system cameras look down their -z axis
+
+            // cameraToTarget = target - camera = -z
+            // targetToCamera = camera - target = +z
+
+            // so the forward basis vector of the matrix (+z) will be normalize(camera - target)
+
+            // then we need to get the right basis vector (+x) by doing cross(forward, (0,1,0))
+            // then do cross(forward, right) to get up
+
+            // const Z = this.T.xyz.minus(new Vec3(lookAt)).normalize();
 
 
         }

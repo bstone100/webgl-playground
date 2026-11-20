@@ -55,28 +55,16 @@
       "type": "Camera",
       "fieldOfView": 45,
       "transform": {
-        "operations": [
-          {
-            "type": "rotate",
-            "direction": "clockwise",
-            "angle": 135,
-            "unit": "degrees",
-            "axis": "y"
-          },
-          {
-            "type": "rotate",
-            "direction": "counterclockwise",
-            "angle": 45,
-            "unit": "degrees",
-            "axis": "x"
-          },
-          {
-            "type": "translate",
-            "x": 1,
-            "y": 1,
-            "z": 1
-          }
-        ]
+        "position": {
+          "x": 1,
+          "y": 1,
+          "z": 1
+        },
+        "lookAt": {
+          "x": 0,
+          "y": 0,
+          "z": 0
+        }
       }
     }
   ]

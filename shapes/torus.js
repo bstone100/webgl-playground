@@ -41,7 +41,7 @@ export class Torus extends SceneObject {
                 // now let's figure out where the vertex is
                 // we can compute a vector as if this was a sphere and then add it to the vector from the outer loop to get the vertex
 
-                const originToSphereSurface = new Vec3({x: cosXyAngle * cosXzAngle, y: sinXyAngle, z: -cosXyAngle * sinXzAngle}).normalize().times(this.minorRadius);
+                const originToSphereSurface = new Vec3({x: cosXyAngle * cosXzAngle, y: sinXyAngle, z: -cosXyAngle * sinXzAngle}).toUnit().times(this.minorRadius);
 
                 const vertex = originToTorusCenter.plus(originToSphereSurface);
                 vertices.push(vertex.x, vertex.y, vertex.z);

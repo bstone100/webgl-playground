@@ -34,7 +34,7 @@ export class Sphere extends SceneObject {
 
                 // compute xyz from angles, normalize, then multiply by radius
                 // note that z is flipped because I want to go counterclockwise around the xz plane
-                let point = new Point3({x: cosTheta * cosPhi, y: sinTheta, z: -cosTheta * sinPhi}).normalize().times(this.radius);
+                let point = new Point3({x: cosTheta * cosPhi, y: sinTheta, z: -cosTheta * sinPhi}).toUnit().times(this.radius);
                 vertices.push(point.x, point.y, point.z);
                 // what is this vertex's index?
                 // i * n + j

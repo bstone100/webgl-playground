@@ -1,6 +1,6 @@
-import {Vec4} from "./vec4.js";
+import {Point3} from "./point3.js";
 
-export class Point2 extends Vec4 {
+export class Point2 extends Point3 {
     constructor(props) {
         super(props);
     }

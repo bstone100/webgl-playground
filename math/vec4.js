@@ -1,3 +1,5 @@
+import {Vec3} from "./vec3.js";
+
 export class Vec4 {
     constructor(props = {}) {
         const {
@@ -29,88 +31,8 @@ export class Vec4 {
         return arr;
     }
 
-    plus(val) {
-        if (typeof val === "number") {
-            return new this.constructor({
-                x: this.x + val,
-                y: this.y + val,
-                z: this.z + val,
-                w: this.w + val
-            });
-        } else if (val instanceof Vec4) {
-            return new this.constructor({
-                x: this.x + val.x,
-                y: this.y + val.y,
-                z: this.y + val.z,
-                w: this.w + val.w
-            });
-        }
-    }
-
-    minus(val) {
-        if (typeof val === "number") {
-            return new this.constructor({
-                x: this.x - val,
-                y: this.y - val,
-                z: this.z - val,
-                w: this.w - val
-            });
-        } else if (val instanceof Vec4) {
-            return new this.constructor({
-                x: this.x - val.x,
-                y: this.y - val.y,
-                z: this.z - val.z,
-                w: this.w - val.w
-            });
-        }
-    }
-
-    times(val) {
-        if (typeof val === "number") {
-            return new this.constructor({
-                x: this.x * val,
-                y: this.y * val,
-                z: this.z * val,
-                w: this.w * val
-            });
-        } else if (val instanceof Vec4) {
-            return new this.constructor({
-                x: this.x * val.x,
-                y: this.y * val.y,
-                z: this.z * val.z,
-                w: this.w * val.w
-            });
-        }
-    }
-
-    dividedBy(val) {
-        if (typeof val === "number") {
-            return new this.constructor({
-                x: this.x / val,
-                y: this.y / val,
-                z: this.z / val,
-                w: this.w / val
-            });
-        } else if (val instanceof Vec4) {
-            return new this.constructor({
-                x: this.x / val.x,
-                y: this.y / val.y,
-                z: this.z / val.z,
-                w: this.w / val.w
-            });
-        }
-    }
-
     dot(vec4) {
         return this.x * vec4.x + this.y * vec4.y + this.z * vec4.z + this.w * vec4.w;
-    }
-
-    length() {
-        return Math.sqrt(Math.pow(this.x, 2) + Math.pow(this.y, 2) + Math.pow(this.z, 2) + Math.pow(this.w, 2));
-    }
-
-    normalize() {
-        return this.dividedBy(this.length());
     }
 
     get r() {
@@ -144,4 +66,23 @@ export class Vec4 {
     set a(val) {
         this.w = val;
     }
+
+    get xyz() {
+        return new Vec3({x: this.x, y: this.y, z: this.z});
+    }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

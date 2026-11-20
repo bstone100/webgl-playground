@@ -4,9 +4,17 @@ import {Mat4} from "./math/mat4.js";
 export class SceneNode {
     constructor(props) {
         const {
-            transform = new Mat4
+            name = "",
+            description = "",
+            notes = "",
+            transform = new Mat4,
+            children = []
         } = props;
 
+        this.name = name;
+        this.description = description;
+        this.notes = notes;
         this.transform = transform;
+        this.children = children;
     }
 }

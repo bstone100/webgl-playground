@@ -1,3 +1,5 @@
+import { classNameToClass, classToClassName } from "./class-registry.js";
+
 export function resizeCanvasToDisplaySize(canvas) {
     const dpr = window.devicePixelRatio;
     const displayWidth = canvas.clientWidth * dpr;
@@ -40,20 +42,86 @@ export function createProgram(gl, vertexShader, fragmentShader) {
     gl.deleteProgram(program);
 }
 
-export function drawTriangle(gl, vertices, color) {
-    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STATIC_DRAW);
-    gl.uniform4f(colorUniformLocation, color.r, color.g, color.b, 1.0);
 
-    const primitiveType = gl.TRIANGLES;
-    const offset = 0;
-    const count = 3;
-
-    gl.drawArrays(primitiveType, offset, count);
-}
 
 export function degreesToRadians(degrees) {
     return degrees / 180 * Math.PI;
 }
+
+// mainly just add a type property for the class
+// usage: Object json = sceneToJson(SceneNode sceneRoot)
+export function sceneNodeToObject(sceneNode) {
+    if (!sceneNode) return null;
+
+    let object = null;
+
+    // get the type from the registry rather than doing constructor.name because minification could change the class names
+    const type = classToClassName.get(sceneNode.constructor);
+    if (type) {
+        const childObjects = [];
+        if (sceneNode.children) {
+            for (const childSceneNode of sceneNode.children) {
+                const childObject = sceneNodeToObject(childSceneNode);
+                if (childObject) {
+                    childObjects.push(childObject);
+                }
+            }
+        }
+        object = {...sceneNode, children: childObjects};
+    }
+
+    return object;
+}
+
+// mainly just take the type property and make a class instance
+// usage: SceneNode scene = jsonToScene(Object jsonRoot)
+export function objectToSceneNode(object) {
+    if (!object) return null;
+
+    let sceneNode = null;
+
+    const constructor = classNameToClass[object.type];
+    if (constructor) {
+        const childSceneNodes = [];
+        if (object.children) {
+            for (const childObject of object.children) {
+                const childSceneNode = objectToSceneNode(childObject);
+                if (childSceneNode) {
+                    childSceneNodes.push(childSceneNode);
+                }
+            }
+        }
+        // all our registered classes must be in this form
+        sceneNode = new constructor({...object, children: childSceneNodes});
+    }
+
+    return sceneNode;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

@@ -6,9 +6,9 @@ export class PointLight extends SceneNode {
         super(props);
 
         const {
-            lightColor = new Color({r: 1, g: 1, b: 1, a: 1})
+            color = new Color({r: 1, g: 1, b: 1, a: 1})
         } = props;
 
-        this.lightColor = lightColor;
+        this.color = color;
     }
 }

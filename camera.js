@@ -9,21 +9,13 @@ export class Camera extends SceneNode {
             fieldOfView = 60,
         } = props;
 
-        this._fieldOfView = fieldOfView;
-    }
-
-    set fieldOfView(val) {
-        this._fieldOfView = val;
-    }
-
-    get fieldOfView() {
-        return this._fieldOfView;
+        this.fieldOfView = fieldOfView;
     }
 
     // this builds a perspective projection matrix
     // see https://learnwebgl.brown37.net/08_projections/projections_perspective.html
     getPerspective(aspectRatio, near, far) {
-        const top = near * Math.tan(degreesToRadians(this._fieldOfView) / 2);
+        const top = near * Math.tan(degreesToRadians(this.fieldOfView) / 2);
         const bottom = -top;
         const right = top * aspectRatio;
         const left = -right;

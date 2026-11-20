@@ -1,9 +1,10 @@
 import {Vec4} from "./vec4.js";
+import {degreesToRadians} from "../helpers.js";
 
 export class Mat4 {
     constructor(props) {
         const {
-            X, Y, Z, T, A, B, C, D, m
+            X, Y, Z, T, A, B, C, D, m, operations
         } = props;
 
         if (m) {
@@ -15,6 +16,33 @@ export class Mat4 {
                 [0, 0, 1, 0],
                 [0, 0, 0, 1]
             ];
+        }
+
+        if (operations) {
+            // let's assume the person who wrote the operations wants them applied in 1st, 2nd, 3rd order
+            // and we assume the person already put them in scale, rotation, translation order
+
+            // we need: this = 3rd * 2nd * 1st * this
+
+            // forward loop over operations
+            // in loop:
+                // get transform matrix
+                // apply it like: this.m = transform * this.m
+                // aka this.m = transform.times(this.m)
+
+            for (const operation of operations) {
+                let transform = null;
+                switch (operation.type) {
+                    case "scale": transform = Mat4.scale(operation); break;
+                    case "rotate": transform = Mat4.rotate(operation); break;
+                    case "translate": transform = Mat4.translate(operation); break;
+                }
+                if (transform) {
+                    this.m = transform.times(this).m;
+                }
+            }
+
+
         }
 
         if (X) this.X = X;
@@ -47,6 +75,80 @@ export class Mat4 {
         arr[14] = this.m[2][3];
         arr[15] = this.m[3][3];
         return arr;
+    }
+
+    static translate({x = 0, y = 0, z = 0}) {
+        return new Mat4({
+            m: [
+                [1, 0, 0, x],
+                [0, 1, 0, y],
+                [0, 0, 1, z],
+                [0, 0, 0, 1]
+            ]
+        });
+    }
+
+    static scale({x = 1, y = 1, z = 1}) {
+        return new Mat4({
+            m: [
+                [x, 0, 0, 0],
+                [0, y, 0, 0],
+                [0, 0, z, 0],
+                [0, 0, 0, 1]
+            ]
+        });
+    }
+
+    static rotate({angle, axis, unit, direction}) {
+        if (direction === "clockwise") angle = -angle;
+        if (unit === "degrees") angle = degreesToRadians(angle);
+
+        const c = Math.cos(angle);
+        const s = Math.sin(angle);
+        switch (axis.toUpperCase()) {
+            case "Z": return new Mat4({
+                m: [
+                    [c, -s, 0, 0],
+                    [s, c, 0, 0],
+                    [0, 0, 1, 0],
+                    [0, 0, 0, 1]
+                ]
+            });
+            case "Y": return new Mat4({
+                m: [
+                    [c, 0, s, 0],
+                    [0, 1, 0, 0],
+                    [-s, 0, c, 0],
+                    [0, 0, 0, 1]
+                ]
+            });
+            case "X": return new Mat4({
+                m: [
+                    [1, 0, 0, 0],
+                    [0, c, -s, 0],
+                    [0, s, c, 0],
+                    [0, 0, 0, 1]
+                ]
+            });
+        }
+    }
+
+    times(val) {
+        if (val instanceof Vec4) {
+            return new Vec4({
+                x: this.A.dot(val),
+                y: this.B.dot(val),
+                z: this.C.dot(val),
+                w: this.D.dot(val)
+            });
+        } else if (val instanceof Mat4) {
+            return new Mat4({
+                X: this.times(val.X),
+                Y: this.times(val.Y),
+                Z: this.times(val.Z),
+                T: this.times(val.T)
+            });
+        }
     }
 
     toInverse() {

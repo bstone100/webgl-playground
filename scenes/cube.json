@@ -1,0 +1,118 @@
+{
+  "notes": "I want to describe my scenes in JSON. a scene includes a list of point lights, spot lights, cameras, and then a tree of geometry objects. But actually since lights and cameras have a transform, they should be part of the tree too. so a scene will really just be a tree of nodes. also need an ambient light color.",
+
+  "name": "Cube Scene",
+  "type": "SceneNode",
+  "description": "I'm just going to render a 3D cube, lit by a point light.",
+
+  "children": [
+    {
+      "name": "Cube",
+      "type": "Box",
+      "description": "I am just a humble cube.",
+      "width": 0.5,
+      "height": 0.5,
+      "depth": 0.5,
+      "color": {
+        "r": 1,
+        "g": 0,
+        "b": 0,
+        "a": 1
+      }
+    },
+    {
+      "name": "Ambient Light",
+      "type": "AmbientLight",
+      "color": {
+        "r": 0.3,
+        "g": 0.3,
+        "b": 0.3,
+        "a": 1
+      }
+    },
+    {
+      "name": "Point Light",
+      "type": "PointLight",
+      "color": {
+        "r": 1,
+        "g": 1,
+        "b": 1,
+        "a": 1
+      },
+      "transform": {
+        "operations": [
+          {
+            "type": "translate",
+            "x": 1,
+            "y": 2,
+            "z": 1
+          }
+        ]
+      }
+    },
+    {
+      "name": "Camera",
+      "type": "Camera",
+      "fieldOfView": 45,
+      "transform": {
+        "operations": [
+          {
+            "type": "rotate",
+            "direction": "clockwise",
+            "angle": 135,
+            "unit": "degrees",
+            "axis": "y"
+          },
+          {
+            "type": "rotate",
+            "direction": "counterclockwise",
+            "angle": 45,
+            "unit": "degrees",
+            "axis": "x"
+          },
+          {
+            "type": "translate",
+            "x": 1,
+            "y": 1,
+            "z": 1
+          }
+        ]
+      }
+    }
+  ]
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -4,6 +4,11 @@ const vertexGLSL = await fetch("./box.vert.glsl").then(res => res.text());
 const fragmentGLSL = await fetch("./box.frag.glsl").then(res => res.text());
 
 export class Box extends SceneObject {
+    #vertexBuffer;
+    #normalBuffer;
+    #indexBuffer;
+    #shaderProgram;
+    
     constructor(gl, props = {}) {
         super(gl, props);
 
@@ -13,29 +18,26 @@ export class Box extends SceneObject {
             depth = 0.5
         } = props;
 
-        this._width = width;
-        this._height = height;
-        this._depth = depth;
-
-        // cache
-        this._updateVertices();
+        this.width = width;
+        this.height = height;
+        this.depth = depth;
 
         // create the shader program here
 
         // this creates a buffer in GPU memory
-        // so this._vertices is on the CPU and this._vertexBuffer is on the GPU
-        this._vertexBuffer = this.gl.createBuffer();
+        // so this._vertices is on the CPU and this.#vertexBuffer is on the GPU
+        this.#vertexBuffer = this.gl.createBuffer();
         this._updateVertexBuffer();
 
         // make a GPU buffer for the normals
-        this._normalBuffer = this.gl.createBuffer();
-        this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this._normalBuffer);
-        this.gl.bufferData(this.gl.ARRAY_BUFFER, new Float32Array(this._normals), this.gl.STATIC_DRAW);
+        this.#normalBuffer = this.gl.createBuffer();
+        this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.#normalBuffer);
+        this.gl.bufferData(this.gl.ARRAY_BUFFER, new Float32Array(this.normals), this.gl.STATIC_DRAW);
 
         // another buffer in GPU memory
-        this._indexBuffer = this.gl.createBuffer();
-        this.gl.bindBuffer(this.gl.ELEMENT_ARRAY_BUFFER, this._indexBuffer);
-        this.gl.bufferData(this.gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(this._indices), this.gl.STATIC_DRAW);
+        this.#indexBuffer = this.gl.createBuffer();
+        this.gl.bindBuffer(this.gl.ELEMENT_ARRAY_BUFFER, this.#indexBuffer);
+        this.gl.bufferData(this.gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(this.indices), this.gl.STATIC_DRAW);
 
         // now load the shaders and make a shader program
 
@@ -50,10 +52,10 @@ export class Box extends SceneObject {
         this.gl.compileShader(fragmentShader);
 
         // make program
-        this._shaderProgram = this.gl.createProgram();
-        this.gl.attachShader(this._shaderProgram, vertexShader);
-        this.gl.attachShader(this._shaderProgram, fragmentShader);
-        this.gl.linkProgram(this._shaderProgram);
+        this.#shaderProgram = this.gl.createProgram();
+        this.gl.attachShader(this.#shaderProgram, vertexShader);
+        this.gl.attachShader(this.#shaderProgram, fragmentShader);
+        this.gl.linkProgram(this.#shaderProgram);
     }
 
     // called every frame
@@ -62,21 +64,21 @@ export class Box extends SceneObject {
         // bind attributes here
 
         // this code links the vertex buffer on the GPU to the correct attribute in the vertex shader
-        this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this._vertexBuffer);
-        const posAttribLocation = this.gl.getAttribLocation(this._shaderProgram, "a_position");
+        this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.#vertexBuffer);
+        const posAttribLocation = this.gl.getAttribLocation(this.#shaderProgram, "a_position");
         this.gl.vertexAttribPointer(posAttribLocation, 3, this.gl.FLOAT, false, 0, 0);
         this.gl.enableVertexAttribArray(posAttribLocation);
 
         // also link the normal buffer to an attribute
-        this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this._normalBuffer);
-        const normalAttribLocation = this.gl.getAttribLocation(this._shaderProgram, "a_normal");
+        this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.#normalBuffer);
+        const normalAttribLocation = this.gl.getAttribLocation(this.#shaderProgram, "a_normal");
         this.gl.vertexAttribPointer(normalAttribLocation, 3, this.gl.FLOAT, false, 0, 0);
         this.gl.enableVertexAttribArray(normalAttribLocation);
 
         // this tells the gpu to pull indices from our index buffer
-        this.gl.bindBuffer(this.gl.ELEMENT_ARRAY_BUFFER, this._indexBuffer);
+        this.gl.bindBuffer(this.gl.ELEMENT_ARRAY_BUFFER, this.#indexBuffer);
 
-        this.gl.useProgram(this._shaderProgram);
+        this.gl.useProgram(this.#shaderProgram);
 
         // set uniforms here
 
@@ -98,7 +100,7 @@ export class Box extends SceneObject {
         const pointLightCount = Math.min(pointLights.length, maxLights);
 
         this.gl.uniform1i(
-            this.gl.getUniformLocation(this._shaderProgram, "u_spotLightCount"),
+            this.gl.getUniformLocation(this.#shaderProgram, "u_spotLightCount"),
             spotLightCount
         );
 
@@ -106,19 +108,19 @@ export class Box extends SceneObject {
         for (let i = 0; i < spotLightCount; i++) {
             const spotLight = spotLights[i];
             this.gl.uniformMatrix4fv(
-                this.gl.getUniformLocation(this._shaderProgram, `u_spotLights[${i}].transform`),
+                this.gl.getUniformLocation(this.#shaderProgram, `u_spotLights[${i}].transform`),
                 spotLight.transform.toArray()
             );
             this.gl.uniform4fv(
-                this.gl.getUniformLocation(this._shaderProgram, `u_spotLights[${i}].color`),
-                spotLight.lightColor.toArray()
+                this.gl.getUniformLocation(this.#shaderProgram, `u_spotLights[${i}].color`),
+                spotLight.color.toArray()
             );
             this.gl.uniform1f(
-                this.gl.getUniformLocation(this._shaderProgram, `u_spotLights[${i}].innerCutoffAngle`),
+                this.gl.getUniformLocation(this.#shaderProgram, `u_spotLights[${i}].innerCutoffAngle`),
                 spotLight.innerCutoffAngleDegrees
             );
             this.gl.uniform1f(
-                this.gl.getUniformLocation(this._shaderProgram, `u_spotLights[${i}].outerCutoffAngle`),
+                this.gl.getUniformLocation(this.#shaderProgram, `u_spotLights[${i}].outerCutoffAngle`),
                 spotLight.outerCutoffAngleDegrees
             );
         }
@@ -126,19 +128,19 @@ export class Box extends SceneObject {
         // now pack the point lights
 
         this.gl.uniform1i(
-            this.gl.getUniformLocation(this._shaderProgram, "u_pointLightCount"),
+            this.gl.getUniformLocation(this.#shaderProgram, "u_pointLightCount"),
             pointLightCount
         );
 
         for (let i = 0; i < pointLightCount; i++) {
             const pointLight = pointLights[i];
             this.gl.uniformMatrix4fv(
-                this.gl.getUniformLocation(this._shaderProgram, `u_pointLights[${i}].transform`),
+                this.gl.getUniformLocation(this.#shaderProgram, `u_pointLights[${i}].transform`),
                 pointLight.transform.toArray()
             );
             this.gl.uniform4fv(
-                this.gl.getUniformLocation(this._shaderProgram, `u_pointLights[${i}].color`),
-                pointLight.lightColor.toArray()
+                this.gl.getUniformLocation(this.#shaderProgram, `u_pointLights[${i}].color`),
+                pointLight.color.toArray()
             );
         }
 
@@ -150,13 +152,13 @@ export class Box extends SceneObject {
         const viewMatrix = camera.transform.toInverse();
 
         this.gl.uniformMatrix4fv(
-            this.gl.getUniformLocation(this._shaderProgram, "u_viewMatrix"),
+            this.gl.getUniformLocation(this.#shaderProgram, "u_viewMatrix"),
             viewMatrix.toArray()
         );
 
         // we also should pass the camera's transform since it's needed to calculate the specular
         this.gl.uniformMatrix4fv(
-            this.gl.getUniformLocation(this._shaderProgram, "u_cameraTransform"),
+            this.gl.getUniformLocation(this.#shaderProgram, "u_cameraTransform"),
             camera.transform.toArray()
         );
 
@@ -165,82 +167,72 @@ export class Box extends SceneObject {
         const near = 0.1;
         const far = 1000;
         this.gl.uniformMatrix4fv(
-            this.gl.getUniformLocation(this._shaderProgram, "u_projectionMatrix"),
+            this.gl.getUniformLocation(this.#shaderProgram, "u_projectionMatrix"),
             camera.getPerspective(aspectRatio, near, far).toArray()
         );
 
         // pass an ambient light color
         const ambientLightColor = scene.ambientLightColor;
         this.gl.uniform4fv(
-            this.gl.getUniformLocation(this._shaderProgram, "u_ambientLightColor"),
+            this.gl.getUniformLocation(this.#shaderProgram, "u_ambientLightColor"),
             ambientLightColor.toArray()
+        );
+
+        // gonna pass the canvas resolution
+        this.gl.uniform2f(
+            this.gl.getUniformLocation(this.#shaderProgram, "u_resolution"),
+            this.gl.canvas.width, this.gl.canvas.height
         );
 
 
         // let's pass an object color uniform
 
-        const colorUniformLocation = this.gl.getUniformLocation(this._shaderProgram, "u_objectColor");
+        const colorUniformLocation = this.gl.getUniformLocation(this.#shaderProgram, "u_objectColor");
         this.gl.uniform4fv(colorUniformLocation, this.objectColor.toArray());
 
         // let's pass this object's transform matrix
-        const transformUniformLocation = this.gl.getUniformLocation(this._shaderProgram, "u_objectTransform");
+        const transformUniformLocation = this.gl.getUniformLocation(this.#shaderProgram, "u_objectTransform");
         this.gl.uniformMatrix4fv(transformUniformLocation, false, this.transform.toArray());
 
         // now finally draw
         // the count is the number of indices, unsigned short is the type of the indices (Uint16)
         this.gl.drawElements(this.gl.TRIANGLES, 36, this.gl.UNSIGNED_SHORT, 0);
     }
-
-    get width() {
-        return this._width;
+    
+    setWidth(val) {
+        this.width = val;
+        this._updateVertexBuffer();
     }
-
-    set width(val) {
-        this._width = val;
-        this._updateVertices();
+    
+    setHeight(val) {
+        this.height = val;
+        this._updateVertexBuffer();
+    }
+    
+    setDepth(val) {
+        this.depth = val;
         this._updateVertexBuffer();
     }
 
-    get height() {
-        return this._height;
-    }
-
-    set height(val) {
-        this._height = val;
-        this._updateVertices();
-        this._updateVertexBuffer();
-    }
-
-    get depth() {
-        return this._depth;
-    }
-
-    set depth(val) {
-        this._depth = val;
-        this._updateVertices();
-        this._updateVertexBuffer();
-    }
-
-    // okay we need to have 4 vertices per face so that we can give each vertex its own normal
-    _updateVertices() {
-        this._vertices = [
+    get vertices() {
+        return [
             // 4 corners of top face
-            this._width/2, this._height/2, this._depth/2, // +x, +y, +z    0   top left of top face
-            this._width/2, this._height/2, -this._depth/2, // +x, +y, -z   1   bottom left of top face
-            -this._width/2, this._height/2, -this._depth/2, // -x, +y, -z  2   bottom right of top face
-            -this._width/2, this._height/2, this._depth/2, // -x, +y, +z   3   top right of top face
+            this.width/2, this.height/2, this.depth/2, // +x, +y, +z    0   top left of top face
+            this.width/2, this.height/2, -this.depth/2, // +x, +y, -z   1   bottom left of top face
+            -this.width/2, this.height/2, -this.depth/2, // -x, +y, -z  2   bottom right of top face
+            -this.width/2, this.height/2, this.depth/2, // -x, +y, +z   3   top right of top face
 
             // 4 corners of bottom face
-            this._width/2, -this._height/2, this._depth/2, // +x, -y, +z   4   top left of bottom face
-            this._width/2, -this._height/2, -this._depth/2 // +x, -y, -z   5   bottom left of bottom face
-            -this._width/2, -this._height/2, -this._depth/2, // -x, -y, -z 6   bottom right of bottom face
-            -this._width/2, -this._height/2, this._depth/2, // -x, -y, +z  7   top right of bottom face
+            this.width/2, -this.height/2, this.depth/2, // +x, -y, +z   4   top left of bottom face
+            this.width/2, -this.height/2, -this.depth/2 // +x, -y, -z   5   bottom left of bottom face
+            -this.width/2, -this.height/2, -this.depth/2, // -x, -y, -z 6   bottom right of bottom face
+            -this.width/2, -this.height/2, this.depth/2, // -x, -y, +z  7   top right of bottom face
 
             // 4 corners of right face
-            this._width/2, this._height/2, this._depth/2, // +x +y +z    top left of right face 8
-            this._width/2, -this._height/2, this._depth/2, // +x, -y, +z  bottom left of right face 9
-            this._width/2, -this._height/2, -this._depth/2, // +x, -y, -z  bottom right 10
-            this._width/2, this._height/2, -this._depth/2, // +x, +y, -z top right  11
+            this.width/2, this.height/2, this.depth/2, // +x +y +z    top left of right face 8
+            this.width/2, -this.height/2, this.depth/2, // +x, -y, +z  bottom left of right face 9
+            this.width/2, -this.height/2, -this.depth/2, // +x, -y, -z  bottom right 10
+            this.width/2, this.height/2, -this.depth/2, // +x, +y, -z top right  11
 
             // left face
             // top left
@@ -251,10 +243,10 @@ export class Box extends SceneObject {
             // -x -y +z
             // top right
             // -x +y +z
-            -this._width/2, this._height/2, -this._depth/2, //  12
-            -this._width/2, -this._height/2, -this._depth/2, // 13
-            -this._width/2, -this._height/2, this._depth/2, //  14
-            -this._width/2, this._height/2, this._depth/2, //   15
+            -this.width/2, this.height/2, -this.depth/2, //  12
+            -this.width/2, -this.height/2, -this.depth/2, // 13
+            -this.width/2, -this.height/2, this.depth/2, //  14
+            -this.width/2, this.height/2, this.depth/2, //   15
 
             // front face
             // top left
@@ -265,10 +257,10 @@ export class Box extends SceneObject {
             // +x -y +z
             // top right
             // +x +y +z
-            -this._width/2, this._height/2, this._depth/2, //   16
-            -this._width/2, -this._height/2, this._depth/2, //  17
-            this._width/2, -this._height/2, this._depth/2, //   18
-            this._width/2, this._height/2, this._depth/2, //    19
+            -this.width/2, this.height/2, this.depth/2, //   16
+            -this.width/2, -this.height/2, this.depth/2, //  17
+            this.width/2, -this.height/2, this.depth/2, //   18
+            this.width/2, this.height/2, this.depth/2, //    19
 
             // back face
             // top left
@@ -279,104 +271,93 @@ export class Box extends SceneObject {
             // -x -y -z
             // top right
             // -x +y -z
-            this._width/2, this._height/2, -this._depth/2, //   20
-            this._width/2, -this._height/2, -this._depth/2, //  21
-            -this._width/2, -this._height/2, -this._depth/2, // 22
-            -this._width/2, this._height/2, -this._depth/2 //   23
+            this.width/2, this.height/2, -this.depth/2, //   20
+            this.width/2, -this.height/2, -this.depth/2, //  21
+            -this.width/2, -this.height/2, -this.depth/2, // 22
+            -this.width/2, this.height/2, -this.depth/2 //   23
         ];
     }
 
-    // normals
-    // each vertex gets a normal
-    _normals = [
-        // top face
-        // all pointing up
-        0, 1, 0,
-        0, 1, 0,
-        0, 1, 0,
-        0, 1, 0,
-
-        // bottom face
-        // pointing down
-        0, -1, 0,
-        0, -1, 0,
-        0, -1, 0,
-        0, -1, 0,
-
-        // right face
-        1, 0, 0,
-        1, 0, 0,
-        1, 0, 0,
-        1, 0, 0,
-
-        // left face
-        -1, 0, 0,
-        -1, 0, 0,
-        -1, 0, 0,
-        -1, 0, 0,
-
-        // front face
-        0, 0, 1,
-        0, 0, 1,
-        0, 0, 1,
-        0, 0, 1,
-
-        // back face
-        0, 0, -1,
-        0, 0, -1,
-        0, 0, -1,
-        0, 0, -1
-    ];
+    _updateVertexBuffer() {
+        this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.#vertexBuffer);
+        this.gl.bufferData(this.gl.ARRAY_BUFFER, new Float32Array(this.vertices), this.gl.DYNAMIC_DRAW);
+    }
 
     get normals() {
-        return this._normals;
-    }
+        return [
+            // top face
+            // all pointing up
+            0, 1, 0,
+            0, 1, 0,
+            0, 1, 0,
+            0, 1, 0,
 
-    _updateVertexBuffer() {
-        this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this._vertexBuffer);
-        this.gl.bufferData(this.gl.ARRAY_BUFFER, new Float32Array(this._vertices), this.gl.DYNAMIC_DRAW);
-    }
+            // bottom face
+            // pointing down
+            0, -1, 0,
+            0, -1, 0,
+            0, -1, 0,
+            0, -1, 0,
 
-    // 8 vertices
-    get vertices() {
-        return this._vertices;
+            // right face
+            1, 0, 0,
+            1, 0, 0,
+            1, 0, 0,
+            1, 0, 0,
+
+            // left face
+            -1, 0, 0,
+            -1, 0, 0,
+            -1, 0, 0,
+            -1, 0, 0,
+
+            // front face
+            0, 0, 1,
+            0, 0, 1,
+            0, 0, 1,
+            0, 0, 1,
+
+            // back face
+            0, 0, -1,
+            0, 0, -1,
+            0, 0, -1,
+            0, 0, -1
+        ];
     }
 
     // okay let's redo the indices
     // there are 6 faces, 24 vertices, 2 triangles per face, 12 triangles, 3 vertices per triangle, 36 indices
-    _indices = [
-        // top face
-        // bottom left triangle
-        0, 1, 2,
-        // top left triangle
-        0, 2, 3,
-
-        // bottom face
-        // make sure to go counterclockwise relative to the normal
-        4, 6, 5,
-        4, 7, 6,
-
-        // right face 8, 9, 10, 11
-        8, 9, 10,
-        8, 10, 11,
-
-        // left face 12, 13, 14, 15
-        12, 13, 14,
-        12, 14, 15,
-
-        // front face 16 17 18 19
-        16, 17, 18,
-        16, 18, 19,
-
-        // back face 20, 21, 22, 23
-        20, 21, 22,
-        20, 22, 23
-
-    ];
-
     get indices() {
-        return this._indices;
+        return [
+            // top face
+            // bottom left triangle
+            0, 1, 2,
+            // top left triangle
+            0, 2, 3,
+
+            // bottom face
+            // make sure to go counterclockwise relative to the normal
+            4, 6, 5,
+            4, 7, 6,
+
+            // right face 8, 9, 10, 11
+            8, 9, 10,
+            8, 10, 11,
+
+            // left face 12, 13, 14, 15
+            12, 13, 14,
+            12, 14, 15,
+
+            // front face 16 17 18 19
+            16, 17, 18,
+            16, 18, 19,
+
+            // back face 20, 21, 22, 23
+            20, 21, 22,
+            20, 22, 23
+        ];
     }
+
 }
 
 

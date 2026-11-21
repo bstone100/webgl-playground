@@ -1,7 +1,7 @@
 import {SceneObject} from "../scene-object.js";
 
-const vertexGLSL = await fetch("./box.vert.glsl").then(res => res.text());
-const fragmentGLSL = await fetch("./box.frag.glsl").then(res => res.text());
+const vertexGLSL = await fetch("./shapes/box.vert.glsl").then(res => res.text());
+const fragmentGLSL = await fetch("./shapes/box.frag.glsl").then(res => res.text());
 
 export class Box extends SceneObject {
     #vertexBuffer;
@@ -24,6 +24,36 @@ export class Box extends SceneObject {
 
         // create the shader program here
 
+        // now load the shaders and make a shader program
+
+        // make vertex shader
+        const vertexShader = this.gl.createShader(this.gl.VERTEX_SHADER);
+        this.gl.shaderSource(vertexShader, vertexGLSL);
+        this.gl.compileShader(vertexShader);
+
+        if (!this.gl.getShaderParameter(vertexShader, this.gl.COMPILE_STATUS)) {
+            alert("vertex shader compilation error: " + this.gl.getShaderInfoLog(vertexShader));
+        }
+
+        // make fragment shader
+        const fragmentShader = this.gl.createShader(this.gl.FRAGMENT_SHADER);
+        this.gl.shaderSource(fragmentShader, fragmentGLSL);
+        this.gl.compileShader(fragmentShader);
+
+        if (!this.gl.getShaderParameter(fragmentShader, this.gl.COMPILE_STATUS)) {
+            alert("fragment shader compilation error: " + this.gl.getShaderInfoLog(fragmentShader));
+        }
+
+        // make program
+        this.#shaderProgram = this.gl.createProgram();
+        this.gl.attachShader(this.#shaderProgram, vertexShader);
+        this.gl.attachShader(this.#shaderProgram, fragmentShader);
+        this.gl.linkProgram(this.#shaderProgram);
+
+        if (!this.gl.getProgramParameter(this.#shaderProgram, this.gl.LINK_STATUS)) {
+            alert("shader linking error: " + this.gl.getProgramInfoLog(this.#shaderProgram));
+        }
+
         // this creates a buffer in GPU memory
         // so this._vertices is on the CPU and this.#vertexBuffer is on the GPU
         this.#vertexBuffer = this.gl.createBuffer();
@@ -38,24 +68,6 @@ export class Box extends SceneObject {
         this.#indexBuffer = this.gl.createBuffer();
         this.gl.bindBuffer(this.gl.ELEMENT_ARRAY_BUFFER, this.#indexBuffer);
         this.gl.bufferData(this.gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(this.indices), this.gl.STATIC_DRAW);
-
-        // now load the shaders and make a shader program
-
-        // make vertex shader
-        const vertexShader = this.gl.createShader(this.gl.VERTEX_SHADER);
-        this.gl.shaderSource(vertexShader, vertexGLSL);
-        this.gl.compileShader(vertexShader);
-
-        // make fragment shader
-        const fragmentShader = this.gl.createShader(this.gl.FRAGMENT_SHADER);
-        this.gl.shaderSource(fragmentShader, fragmentGLSL);
-        this.gl.compileShader(fragmentShader);
-
-        // make program
-        this.#shaderProgram = this.gl.createProgram();
-        this.gl.attachShader(this.#shaderProgram, vertexShader);
-        this.gl.attachShader(this.#shaderProgram, fragmentShader);
-        this.gl.linkProgram(this.#shaderProgram);
     }
 
     // called every frame
@@ -233,7 +245,7 @@ export class Box extends SceneObject {
 
             // 4 corners of bottom face
             this.width/2, -this.height/2, this.depth/2, // +x, -y, +z   4   top left of bottom face
-            this.width/2, -this.height/2, -this.depth/2 // +x, -y, -z   5   bottom left of bottom face
+            this.width/2, -this.height/2, -this.depth/2, // +x, -y, -z   5   bottom left of bottom face
             -this.width/2, -this.height/2, -this.depth/2, // -x, -y, -z 6   bottom right of bottom face
             -this.width/2, -this.height/2, this.depth/2, // -x, -y, +z  7   top right of bottom face
 
@@ -289,7 +301,7 @@ export class Box extends SceneObject {
 
     _updateVertexBuffer() {
         this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.#vertexBuffer);
-        this.gl.bufferData(this.gl.ARRAY_BUFFER, new Float32Array(this.vertices), this.gl.DYNAMIC_DRAW);
+        this.gl.bufferData(this.gl.ARRAY_BUFFER, new Float32Array(this.vertices), this.gl.STATIC_DRAW);
     }
 
     get normals() {

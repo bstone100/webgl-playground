@@ -45,7 +45,9 @@ void main() {
     vec3 cameraPos = u_cameraWorldTransform[3].xyz;
     vec3 fragToCamera = normalize(cameraPos - fragPos);
 
-    for (int i = 0; i < u_pointLightCount; i++) {
+    for (int i = 0; i < MAX_POINT_LIGHTS; i++) {
+        if (i >= u_pointLightCount) break;
+
         PointLight pointLight = u_pointLights[i];
         // we just need the translation
         vec3 lightPos = pointLight.worldTransform[3].xyz;
@@ -83,7 +85,9 @@ void main() {
 
     // now calculate for the spot lights
     // it's the same color calculation as for a point light, but at the end you cut off light that's out of range
-    for (int i = 0; i < u_spotLightCount; i++) {
+    for (int i = 0; i < MAX_SPOT_LIGHTS; i++) {
+        if (i >= u_spotLightCount) break;
+
         SpotLight spotLight = u_spotLights[i];
 
         vec3 lightPos = spotLight.worldTransform[3].xyz;

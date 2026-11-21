@@ -42,7 +42,7 @@ export class SceneNode {
     // we need to be caching this information
     get worldTransform() {
         if (this.parent) {
-            return parent.worldTransform * this.localTransform;
+            return this.parent.worldTransform.times(this.localTransform);
         } else {
             return this.localTransform;
         }

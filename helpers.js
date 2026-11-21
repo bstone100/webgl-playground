@@ -1,4 +1,4 @@
-import { classNameToClass, classToClassName } from "./class-registry.js";
+import {classNameToClass, classToClassName} from "./class-registry.js";
 import {AmbientLight} from "./lights/ambient-light.js";
 import {PointLight} from "./lights/point-light.js";
 import {SpotLight} from "./lights/spot-light.js";
@@ -77,7 +77,61 @@ export function sceneNodeToObject(sceneNode) {
     return object;
 }
 
+export function objectToClassInstance(object, sceneInfo, gl) {
+    // if this object has a type property and that type is a registered class then return a class instance
+    // otherwise return the object
+
+    // object will be a json type, so object, array, string, number, boolean
+    // if its an object we need to recursively call this function on its properties
+    // if its an array we need to recursively call this function on its children
+
+    if (object instanceof Array) {
+        // note: this is a waste of time for long arrays of numbers like matrices
+        for (let i = 0; i < object.length; i++) {
+            object[i] = objectToClassInstance(object[i], sceneInfo, gl);
+        }
+    } else if (object instanceof Object) {
+        for (const prop in object) {
+            object[prop] = objectToClassInstance(object[prop], sceneInfo, gl);
+        }
+    }
+
+    // okay now all of object's array entries or object properties have been converted to classes or kept the same
+
+    const constructor = classNameToClass[object.type];
+    if (constructor) {
+        // now finally if this object is supposed to be a class then call the constructor with object as the props object
+
+        // need to pass gl reference to constructor if it's a SceneObject
+
+        const classInstance = new constructor(object, gl);
+
+        // now do special handling
+        if (classInstance instanceof SceneNode) {
+            for (const child of classInstance.children) {
+                child.parent = classInstance;
+            }
+        }
+
+        switch (constructor) {
+            case AmbientLight: sceneInfo.ambientLights.push(classInstance); break;
+            case PointLight: sceneInfo.pointLights.push(classInstance); break;
+            case SpotLight: sceneInfo.spotLights.push(classInstance); break;
+            case Camera: sceneInfo.cameras.push(classInstance); break;
+        }
+
+        return classInstance;
+    } else {
+        return object;
+    }
+}
+
 // mainly just take the type property and make a class instance
+// this is not sufficient
+// we can't just go through the children array, we need to go through each property as well
+// we are trying to build a tree of all class instances, not just scene nodes
+// instead of looking at children array, loop through each property
+// for each property, if its an object loop through its properties, if its an array loop through its children
 export function objectToSceneNode(object, sceneInfo, gl) {
     if (!object) return null;
 

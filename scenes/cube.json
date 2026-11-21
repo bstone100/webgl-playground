@@ -14,6 +14,7 @@
       "height": 0.5,
       "depth": 0.5,
       "color": {
+        "type": "Color",
         "r": 1,
         "g": 0,
         "b": 0,
@@ -24,6 +25,7 @@
       "name": "Ambient Light",
       "type": "AmbientLight",
       "color": {
+        "type": "Color",
         "r": 0.3,
         "g": 0.3,
         "b": 0.3,
@@ -34,13 +36,16 @@
       "name": "Point Light",
       "type": "PointLight",
       "color": {
+        "type": "Color",
         "r": 1,
         "g": 1,
         "b": 1,
         "a": 1
       },
       "translationMatrix": {
+        "type": "Mat4",
         "position": {
+          "type": "Vec3",
           "x": 1,
           "y": 2,
           "z": 1
@@ -52,14 +57,18 @@
       "type": "Camera",
       "fieldOfView": 45,
       "translationMatrix": {
+        "type": "Mat4",
         "position": {
+          "type": "Vec3",
           "x": 1,
           "y": 1,
           "z": 1
         }
       },
       "rotationMatrix": {
+        "type": "Mat4",
         "direction": {
+          "type": "Vec3",
           "x": -1,
           "y": -1,
           "z": -1

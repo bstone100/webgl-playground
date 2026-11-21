@@ -14,5 +14,4 @@ export class SceneObject extends SceneNode {
         this.color = color;
     }
 
-    draw(sceneInfo);
 }

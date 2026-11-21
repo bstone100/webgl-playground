@@ -109,6 +109,7 @@ export class Box extends SceneObject {
             const spotLight = spotLights[i];
             this.gl.uniformMatrix4fv(
                 this.gl.getUniformLocation(this.#shaderProgram, `u_spotLights[${i}].worldTransform`),
+                false,
                 spotLight.worldTransform.toArray()
             );
             this.gl.uniform4fv(
@@ -136,6 +137,7 @@ export class Box extends SceneObject {
             const pointLight = pointLights[i];
             this.gl.uniformMatrix4fv(
                 this.gl.getUniformLocation(this.#shaderProgram, `u_pointLights[${i}].worldTransform`),
+                false,
                 pointLight.worldTransform.toArray()
             );
             this.gl.uniform4fv(
@@ -154,12 +156,14 @@ export class Box extends SceneObject {
 
         this.gl.uniformMatrix4fv(
             this.gl.getUniformLocation(this.#shaderProgram, "u_viewMatrix"),
+            false,
             viewMatrix.toArray()
         );
 
         // we also should pass the camera's transform since it's needed to calculate the specular
         this.gl.uniformMatrix4fv(
             this.gl.getUniformLocation(this.#shaderProgram, "u_cameraWorldTransform"),
+            false,
             cameraWorldTransform.toArray()
         );
 
@@ -169,6 +173,7 @@ export class Box extends SceneObject {
         const far = 1000;
         this.gl.uniformMatrix4fv(
             this.gl.getUniformLocation(this.#shaderProgram, "u_projectionMatrix"),
+            false,
             camera.getPerspective(aspectRatio, near, far).toArray()
         );
 

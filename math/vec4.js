@@ -1,4 +1,4 @@
-import {Vec3} from "./vec3.js";
+// import {Vec3} from "./vec3.js";
 
 export class Vec4 {
     constructor(props = {}) {
@@ -67,9 +67,9 @@ export class Vec4 {
         this.w = val;
     }
 
-    get xyz() {
-        return new Vec3({x: this.x, y: this.y, z: this.z});
-    }
+    // get xyz() {
+    //     return new Vec3({x: this.x, y: this.y, z: this.z});
+    // }
 }
 
 

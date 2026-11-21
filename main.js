@@ -1,4 +1,4 @@
-import {drawSceneObject, objectToSceneNode, resizeCanvasToDisplaySize} from "./helpers.js";
+import {drawSceneObject, objectToClassInstance, objectToSceneNode, resizeCanvasToDisplaySize} from "./helpers.js";
 
 const canvas = document.querySelector("canvas");
 const gl = canvas.getContext("webgl2");
@@ -34,7 +34,7 @@ async function setActiveScene() {
         spotLights: [],
         cameras: []
     };
-    const sceneNode = objectToSceneNode(sceneObject, sceneInfo, gl);
+    const sceneNode = objectToClassInstance(sceneObject, sceneInfo, gl);
 
     if (sceneNode) {
         activeScene = sceneNode;

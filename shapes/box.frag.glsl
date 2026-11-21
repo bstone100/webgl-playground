@@ -6,12 +6,12 @@ varying vec4 v_worldNormal;
 uniform vec4 u_objectColor;
 
 struct PointLight {
-    mat4 transform;
+    mat4 worldTransform;
     vec4 color;
 };
 
 struct SpotLight {
-    mat4 transform;
+    mat4 worldTransform;
     vec4 color;
     float innerCutoffAngle;
     float outerCutoffAngle;
@@ -28,7 +28,7 @@ uniform PointLight u_pointLights[MAX_POINT_LIGHTS];
 
 uniform vec4 u_ambientLightColor;
 
-uniform mat4 u_cameraTransform;
+uniform mat4 u_cameraWorldTransform;
 
 void main() {
 
@@ -42,13 +42,13 @@ void main() {
     vec3 fragPos = v_worldPos.xyz;
     vec3 surfaceNormal = normalize(v_worldNormal.xyz);
 
-    vec3 cameraPos = u_cameraTransform[3].xyz;
+    vec3 cameraPos = u_cameraWorldTransform[3].xyz;
     vec3 fragToCamera = normalize(cameraPos - fragPos);
 
     for (int i = 0; i < u_pointLightCount; i++) {
         PointLight pointLight = u_pointLights[i];
         // we just need the translation
-        vec3 lightPos = pointLight.transform[3].xyz;
+        vec3 lightPos = pointLight.worldTransform[3].xyz;
         vec3 fragToLight = normalize(lightPos - fragPos);
         // we need to compare the light vector with the surface normal
         // okay we have the surface normal
@@ -86,7 +86,7 @@ void main() {
     for (int i = 0; i < u_spotLightCount; i++) {
         SpotLight spotLight = u_spotLights[i];
 
-        vec3 lightPos = spotLight.transform[3].xyz;
+        vec3 lightPos = spotLight.worldTransform[3].xyz;
         vec3 fragToLight = normalize(lightPos - fragPos);
 
         float kc = 1.0;
@@ -100,7 +100,7 @@ void main() {
         // we need to calculate to what degree the fragment is within range of the light cone
         // first find the angle between lightDir and lightToFrag
         // lightDir is the forward basis vector of the light's transform
-        vec3 lightDir = normalize(spotLight.transform[2].xyz);
+        vec3 lightDir = normalize(spotLight.worldTransform[2].xyz);
         float lightToFragAngle = acos(dot(lightDir, -fragToLight)) / 3.14159 * 180.0;
 
         // this just means we want 1 if lightToFragAngle is less than innerCutoffAngle, 0 if its greater than outerCutoffAngle

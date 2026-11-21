@@ -9,8 +9,8 @@ export class Box extends SceneObject {
     #indexBuffer;
     #shaderProgram;
     
-    constructor(gl, props = {}) {
-        super(gl, props);
+    constructor(props = {}, gl) {
+        super(props, gl);
 
         const {
             width = 0.5,
@@ -60,7 +60,7 @@ export class Box extends SceneObject {
 
     // called every frame
     // let's say that a scene object is passed here with all info we need to render this object
-    draw(scene) {
+    draw(sceneInfo) {
         // bind attributes here
 
         // this code links the vertex buffer on the GPU to the correct attribute in the vertex shader
@@ -90,8 +90,8 @@ export class Box extends SceneObject {
         // we need to put a limit on the number of lights as well as tell the shader how many lights have been passed, and also what kind of lights
 
         // let's just assume that scene has a pointLights array and a spotLights array
-        const pointLights = scene.pointLights;
-        const spotLights = scene.spotLights;
+        const pointLights = sceneInfo.pointLights;
+        const spotLights = sceneInfo.spotLights;
         // pass them as uniforms
 
         const maxLights = 10;
@@ -108,8 +108,8 @@ export class Box extends SceneObject {
         for (let i = 0; i < spotLightCount; i++) {
             const spotLight = spotLights[i];
             this.gl.uniformMatrix4fv(
-                this.gl.getUniformLocation(this.#shaderProgram, `u_spotLights[${i}].transform`),
-                spotLight.transform.toArray()
+                this.gl.getUniformLocation(this.#shaderProgram, `u_spotLights[${i}].worldTransform`),
+                spotLight.worldTransform.toArray()
             );
             this.gl.uniform4fv(
                 this.gl.getUniformLocation(this.#shaderProgram, `u_spotLights[${i}].color`),
@@ -135,8 +135,8 @@ export class Box extends SceneObject {
         for (let i = 0; i < pointLightCount; i++) {
             const pointLight = pointLights[i];
             this.gl.uniformMatrix4fv(
-                this.gl.getUniformLocation(this.#shaderProgram, `u_pointLights[${i}].transform`),
-                pointLight.transform.toArray()
+                this.gl.getUniformLocation(this.#shaderProgram, `u_pointLights[${i}].worldTransform`),
+                pointLight.worldTransform.toArray()
             );
             this.gl.uniform4fv(
                 this.gl.getUniformLocation(this.#shaderProgram, `u_pointLights[${i}].color`),
@@ -148,8 +148,9 @@ export class Box extends SceneObject {
         // the view matrix is the inverse of the camera's transform matrix
         // let's assume the scene has a camera
         // there might be multiple cameras but one of them will be considered active
-        const camera = scene.camera;
-        const viewMatrix = camera.transform.toInverse();
+        const camera = sceneInfo.cameras[0];
+        const cameraWorldTransform = camera.worldTransform;
+        const viewMatrix = cameraWorldTransform.toInverse();
 
         this.gl.uniformMatrix4fv(
             this.gl.getUniformLocation(this.#shaderProgram, "u_viewMatrix"),
@@ -158,8 +159,8 @@ export class Box extends SceneObject {
 
         // we also should pass the camera's transform since it's needed to calculate the specular
         this.gl.uniformMatrix4fv(
-            this.gl.getUniformLocation(this.#shaderProgram, "u_cameraTransform"),
-            camera.transform.toArray()
+            this.gl.getUniformLocation(this.#shaderProgram, "u_cameraWorldTransform"),
+            cameraWorldTransform.toArray()
         );
 
         // also pass in the projection matrix
@@ -172,7 +173,7 @@ export class Box extends SceneObject {
         );
 
         // pass an ambient light color
-        const ambientLightColor = scene.ambientLightColor;
+        const ambientLightColor = sceneInfo.ambientLights[0].color;
         this.gl.uniform4fv(
             this.gl.getUniformLocation(this.#shaderProgram, "u_ambientLightColor"),
             ambientLightColor.toArray()
@@ -188,11 +189,14 @@ export class Box extends SceneObject {
         // let's pass an object color uniform
 
         const colorUniformLocation = this.gl.getUniformLocation(this.#shaderProgram, "u_objectColor");
-        this.gl.uniform4fv(colorUniformLocation, this.objectColor.toArray());
+        this.gl.uniform4fv(colorUniformLocation, this.color.toArray());
 
         // let's pass this object's transform matrix
-        const transformUniformLocation = this.gl.getUniformLocation(this.#shaderProgram, "u_objectTransform");
-        this.gl.uniformMatrix4fv(transformUniformLocation, false, this.transform.toArray());
+        this.gl.uniformMatrix4fv(
+            this.gl.getUniformLocation(this.#shaderProgram, "u_objectWorldTransform"),
+            false,
+            this.worldTransform.toArray()
+        );
 
         // now finally draw
         // the count is the number of indices, unsigned short is the type of the indices (Uint16)

@@ -1,4 +1,10 @@
 import { classNameToClass, classToClassName } from "./class-registry.js";
+import {AmbientLight} from "./lights/ambient-light.js";
+import {PointLight} from "./lights/point-light.js";
+import {SpotLight} from "./lights/spot-light.js";
+import {Camera} from "./camera.js";
+import {SceneObject} from "./scene-object.js";
+import {SceneNode} from "./scene-node.js";
 
 export function resizeCanvasToDisplaySize(canvas) {
     const dpr = window.devicePixelRatio;
@@ -72,32 +78,61 @@ export function sceneNodeToObject(sceneNode) {
 }
 
 // mainly just take the type property and make a class instance
-// usage: SceneNode scene = jsonToScene(Object jsonRoot)
-export function objectToSceneNode(object) {
+export function objectToSceneNode(object, sceneInfo, gl) {
     if (!object) return null;
 
     let sceneNode = null;
 
     const constructor = classNameToClass[object.type];
     if (constructor) {
+
+        // recursively build children first
         const childSceneNodes = [];
         if (object.children) {
             for (const childObject of object.children) {
-                const childSceneNode = objectToSceneNode(childObject);
+                const childSceneNode = objectToSceneNode(childObject, sceneInfo, gl);
                 if (childSceneNode) {
                     childSceneNodes.push(childSceneNode);
                 }
             }
         }
-        // all our registered classes must be in this form
-        sceneNode = new constructor({...object, children: childSceneNodes});
+
+        // then build this class instance
+        // note: all our registered classes must have a single props argument
+        // only classes extending SceneObject will use gl parameter
+        sceneNode = new constructor({...object, children: childSceneNodes}, gl);
+
+        // then give children a reference to this class instance
+        for (const childSceneNode of childSceneNodes) {
+            childSceneNode.parent = sceneNode;
+        }
+
+        switch (constructor) {
+            case AmbientLight: sceneInfo.ambientLights.push(sceneNode); break;
+            case PointLight: sceneInfo.pointLights.push(sceneNode); break;
+            case SpotLight: sceneInfo.spotLights.push(sceneNode); break;
+            case Camera: sceneInfo.cameras.push(sceneNode); break;
+        }
     }
 
     return sceneNode;
 }
 
+// we draw SceneObjects not SceneNodes
+// but SceneNodes can have child SceneObjects
+export function drawSceneObject(sceneObject, sceneInfo) {
+    if (!sceneObject) return;
 
+    if (sceneObject instanceof SceneObject) {
+        sceneObject.draw(sceneInfo);
+    }
 
+    if (sceneObject instanceof SceneNode) {
+        for (const childNode of sceneObject.children) {
+            drawSceneObject(childNode, sceneInfo);
+        }
+    }
+}
 
 
 

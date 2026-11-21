@@ -6,7 +6,7 @@ export class Mat4 {
     constructor(props) {
         const {
             // I'm providing various ways to build a matrix because I'm nice
-            X, Y, Z, T, A, B, C, D, m, operations, position, lookAt
+            X, Y, Z, T, A, B, C, D, m, operations, position, lookAt, direction
         } = props;
 
         if (m) {
@@ -70,6 +70,18 @@ export class Mat4 {
             const X = Vec3.up.cross(Z);
 
             // Y = Z cross X
+            const Y = Z.cross(X);
+
+            this.X = X;
+            this.Y = Y;
+            this.Z = Z;
+        }
+
+        // point -Z axis at direction
+        if (direction) {
+            // so Z is normalize(-direction)
+            const Z = new Vec3(direction).negate().toUnit();
+            const X = Vec3.up.cross(Z);
             const Y = Z.cross(X);
 
             this.X = X;

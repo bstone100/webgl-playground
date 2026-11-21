@@ -62,9 +62,19 @@ export class Mat4 {
             // then we need to get the right basis vector (+x) by doing cross(forward, (0,1,0))
             // then do cross(forward, right) to get up
 
-            // const Z = this.T.xyz.minus(new Vec3(lookAt)).normalize();
+            const Z = this.T.xyz.minus(new Vec3(lookAt)).toUnit();
 
 
+            // X = Up cross Z
+            // note this works as long as Z is not pointing straight up
+            const X = Vec3.up.cross(Z);
+
+            // Y = Z cross X
+            const Y = Z.cross(X);
+
+            this.X = X;
+            this.Y = Y;
+            this.Z = Z;
         }
 
         if (X) this.X = X;

@@ -78,6 +78,8 @@ function draw() {
 
         drawSceneObject(activeScene, activeSceneInfo);
     }
+
+    requestAnimationFrame(draw);
 }
 
 draw();

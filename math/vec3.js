@@ -18,7 +18,7 @@ export class Vec3 extends Vec4 {
             return new this.constructor({
                 x: this.x + val.x,
                 y: this.y + val.y,
-                z: this.y + val.z
+                z: this.z + val.z
             });
         }
     }
@@ -77,6 +77,10 @@ export class Vec3 extends Vec4 {
 
     toUnit() {
         return this.dividedBy(this.length());
+    }
+
+    normalize() {
+        return this.toUnit();
     }
 
     negate() {

@@ -3,11 +3,11 @@
 
   "name": "Cube Scene",
   "type": "SceneNode",
-  "description": "I'm just going to render a 3D cube, lit by a point light.",
+  "description": "I'm going to put different colored cubes around the scene to help me identify where the camera is looking.",
 
   "children": [
     {
-      "name": "Cube",
+      "name": "Cube at origin",
       "type": "Box",
       "description": "I am just a humble cube.",
       "width": 0.5,
@@ -19,6 +19,86 @@
         "g": 0,
         "b": 0,
         "a": 1
+      }
+    },
+    {
+      "name": "yellow box in positive quadrant of xz plane",
+      "type": "Box",
+      "color": {
+        "type": "Color",
+        "r": 1,
+        "g": 1,
+        "b": 0,
+        "a": 1
+      },
+      "translationMatrix": {
+        "type": "Mat4",
+        "position": {
+          "type": "Vec3",
+          "x": 3,
+          "y": 0,
+          "z": 3
+        }
+      }
+    },
+    {
+      "name": "blue box in +x -z quadrant of xz plane",
+      "type": "Box",
+      "color": {
+        "type": "Color",
+        "r": 0,
+        "g": 0,
+        "b": 1,
+        "a": 1
+      },
+      "translationMatrix": {
+        "type": "Mat4",
+        "position": {
+          "type": "Vec3",
+          "x": 3,
+          "y": 0,
+          "z": -3
+        }
+      }
+    },
+    {
+      "name": "green box in -x -z quadrant of xz plane",
+      "type": "Box",
+      "color": {
+        "type": "Color",
+        "r": 0,
+        "g": 1,
+        "b": 0,
+        "a": 1
+      },
+      "translationMatrix": {
+        "type": "Mat4",
+        "position": {
+          "type": "Vec3",
+          "x": -3,
+          "y": 0,
+          "z": -3
+        }
+      }
+    },
+    {
+      "name": "purple box in -x +z quadrant of xz plane",
+      "type": "Box",
+      "color": {
+        "type": "Color",
+        "r": 1,
+        "g": 0,
+        "b": 1,
+        "a": 1
+      },
+      "translationMatrix": {
+        "type": "Mat4",
+        "position": {
+          "type": "Vec3",
+          "x": -3,
+          "y": 0,
+          "z": 3
+        }
       }
     },
     {
@@ -53,25 +133,31 @@
       }
     },
     {
-      "name": "Camera",
+      "name": "camera sitting on +z axis staring down z axis",
       "type": "Camera",
       "fieldOfView": 45,
       "translationMatrix": {
         "type": "Mat4",
         "position": {
           "type": "Vec3",
-          "x": 1,
-          "y": 1,
-          "z": 1
+          "x": 0,
+          "y": -1,
+          "z": 8
         }
       },
       "rotationMatrix": {
         "type": "Mat4",
-        "direction": {
+        "lookAt": {
           "type": "Vec3",
-          "x": -1,
+          "x": 0,
+          "y": 0,
+          "z": 0
+        },
+        "from": {
+          "type": "Vec3",
+          "x": 0,
           "y": -1,
-          "z": -1
+          "z": 8
         }
       }
     }

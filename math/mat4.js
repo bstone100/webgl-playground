@@ -6,7 +6,7 @@ export class Mat4 {
     constructor(props = {}) {
         const {
             // I'm providing various ways to build a matrix because I'm nice
-            X, Y, Z, T, A, B, C, D, m, operations, position, lookAt, direction
+            X, Y, Z, T, A, B, C, D, m, operations, position, lookAt, from, direction
         } = props;
 
         if (m) {
@@ -45,44 +45,29 @@ export class Mat4 {
             }
         }
 
-        if (position) {
-            if (position.x) this.m[0][3] = position.x;
-            if (position.y) this.m[1][3] = position.y;
-            if (position.z) this.m[2][3] = position.z;
+        // this is a rotation matrix, use the position to build the matrix but don't put it in the matrix
+        if (lookAt && from) {
+            const Z = from.minus(lookAt).normalize();
+            const X = Vec3.up.cross(Z).normalize();
+            const Y = Z.cross(X).normalize();
+
+            this.X = X;
+            this.Y = Y;
+            this.Z = Z;
         }
 
-        if (lookAt) {
-            // in this system cameras look down their -z axis
-
-            // cameraToTarget = target - camera = -z
-            // targetToCamera = camera - target = +z
-
-            // so the forward basis vector of the matrix (+z) will be normalize(camera - target)
-
-            // then we need to get the right basis vector (+x) by doing cross(forward, (0,1,0))
-            // then do cross(forward, right) to get up
-
-            // const Z = this.T.xyz.minus(new Vec3(lookAt)).toUnit();
-            //
-            //
-            // // X = Up cross Z
-            // // note this works as long as Z is not pointing straight up
-            // const X = Vec3.up.cross(Z);
-            //
-            // // Y = Z cross X
-            // const Y = Z.cross(X);
-            //
-            // this.X = X;
-            // this.Y = Y;
-            // this.Z = Z;
+        if (position) {
+            // this is a translation matrix, put the position in the matrix
+            this.T = {...position, w: 1}
         }
 
         // point -Z axis at direction
         if (direction) {
             // so Z is normalize(-direction)
-            const Z = new Vec3(direction).negate().toUnit();
-            const X = Vec3.up.cross(Z);
-            const Y = Z.cross(X);
+            // need to normalize all
+            const Z = new Vec3(direction).negate().normalize();
+            const X = Vec3.up.cross(Z).normalize();
+            const Y = Z.cross(X).normalize;
 
             this.X = X;
             this.Y = Y;

@@ -1,5 +1,6 @@
 import {Vec4} from "./vec4.js";
 import {lerp} from "../helpers.js";
+import {Vec2} from "./vec2.js";
 
 export class Vec3 extends Vec4 {
     constructor(props) {
@@ -132,16 +133,34 @@ export class Vec3 extends Vec4 {
         });
     }
 
-    // we need to take a spherical path from a to b
-    // that means to get from (0,0,1) to (0,0,-1) we need a vector that rotates about the origin
-    // for example we could travel on the xz plane, or we could travel on the zy plane
-    // we could travel on any plane that is parallel to the z axis
-    // those two vectors are a special case because they are parallel with each other which means that there are an infinite number of valid spherical paths
-    // but for vectors that are not parallel with each other, there are only two paths, a shorter path and a longer path
-
-    // slerping between vec2s is simple, you just lerp between the angles of a and b to get angle of c
     static slerp(a, b, t) {
+        // okay we need to find two angles representing both vectors
 
+        // first set of angles is for a and b both projected onto the the xy plane
+        // we just need to ignore the z values
+        // we can slerp the two projections onto the xy plane
+
+        // this will give us a vector in the correct direction on the xy plane
+        // Vec2.slerp just uses x and y
+        // ignore the length of this vector
+        const xyVec = Vec2.slerp(new Vec2({x: a.x, y: a.y}), new Vec2({x: b.x, y: b.y}), t).normalize();
+
+        // we also need a vector on the xz plane
+        // so we should project a and b onto the xz plane which just means ignore the y value
+
+        // we can just Vec2.slerp with xz from both
+
+        const xzVec = Vec2.slerp(new Vec2({x: a.x, y: a.z}), new Vec2({x: b.x, y: b.z}), t).normalize();
+
+        // okay now we have two 2d vectors representing our 3d vector
+        // I think the 3d vector can just grab y from the xy vec and grab x and z from the xz vec
+
+        // this vector points in the final direction, now just need to lerp the length
+        const xyzVec = new Vec3({x: xzVec.x, y: xyVec.y, z: xzVec.y}).normalize();
+
+        const length = lerp(a.length(), b.length(), t);
+
+        return xyzVec.times(length);
     }
 }
 

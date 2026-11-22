@@ -1,5 +1,6 @@
 // import {Vec3} from "./vec3.js";
 
+// note: maybe we should make Vec4 extend Vec3 instead of the other way around
 export class Vec4 {
     constructor(props = {}) {
         const {
@@ -33,6 +34,10 @@ export class Vec4 {
 
     dot(vec4) {
         return this.x * vec4.x + this.y * vec4.y + this.z * vec4.z + this.w * vec4.w;
+    }
+
+    length() {
+        return Math.sqrt(Math.pow(this.x, 2) + Math.pow(this.y, 2) + Math.pow(this.z, 2));
     }
 
     get r() {

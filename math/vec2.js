@@ -6,6 +6,10 @@ export class Vec2 extends Vec3 {
         super(props);
     }
 
+    length() {
+        return Math.sqrt(Math.pow(this.x, 2) + Math.pow(this.y, 2));
+    }
+
     static lerp(a, b, t) {
         return new Vec2({
             x: lerp(a.x, b.x, t),
@@ -19,14 +23,6 @@ export class Vec2 extends Vec3 {
         // these will both be in [0, 2pi]
         const angleA = Math.atan2(a.y, a.x);
         const angleB = Math.atan2(b.y, b.x);
-
-        // I'm overthinking this, let's just pick one of the paths for now
-        // later we'll pick the shortest path
-
-        // theta is same direction as -(360 - theta)
-
-        // let me be really explicit
-        // there are 4 cases: a < b counterclockwise, a < b clockwise, a > b counterclockwise, a > b clockwise
 
         let angleC;
 

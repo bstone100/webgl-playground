@@ -46,6 +46,33 @@ selectSceneElement.addEventListener("change", setActiveScene);
 
 await setActiveScene();
 
+
+// we need to have a pseudo animation controller
+// all of our animations will be written in terms of arbitrary t values and duration values
+// t is from 0 to 1, duration is in ms or s
+
+// this is t = 0
+// all of our animations start now
+
+// how do we tell our objects which transform to use?
+
+// our objects need to know the start time and the current time
+
+// for an object with animation duration 3 seconds, t = current time / 3, during the first iteration
+// if there are just 2 keyframes, one at t=0 and one at t=1, then the current position is a simple slerp between kf1 and kf2
+
+// if there are multiple keyframes, then t tells us where we are on the timeline
+// we will be in the middle of two keyframes, this means there will be another t value telling us where between the two keyframes we are
+// so then we'll slerp between those two keyframes
+// what I'm not certain about is if easing should be applied for the t spanning the whole timeline
+// or should easing be applied in between each keyframe as well
+// I'm thinking easing should be applied between each keyframe but not across the timeline as a whole, should verify how css does this
+// okay I'm pretty sure css applies the easing function in between keyframes, not across the timeline as a whole
+
+
+// let's just add the start time and the current time to the scene info that gets passed to the draw() call of each object
+activeSceneInfo.startTime = performance.now();
+
 // this function is called every frame
 function draw() {
     resizeCanvasToDisplaySize(canvas);
@@ -57,6 +84,8 @@ function draw() {
     gl.enable(gl.DEPTH_TEST);
     gl.depthFunc(gl.LEQUAL);
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+
+    activeSceneInfo.currentTime = performance.now();
 
     // now we need to go through all the geometry objects in our scene and draw them
 

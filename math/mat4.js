@@ -205,7 +205,18 @@ export class Mat4 {
 
     // okay to slerp a matrix we need to slerp each basis vector
     // we can just lerp the translation
+    // maybe we do want to slerp the translation as well, or at least have the option
     static slerp(a, b, t) {
+        return new Mat4({
+            X: Vec3.slerp(a.X, b.X, t),
+            Y: Vec3.slerp(a.Y, b.Y, t),
+            Z: Vec3.slerp(a.Z, b.Z, t),
+            T: {...Vec3.slerp(a.T, b.T, t), w: 1}
+        });
+    }
+
+    // I will have a lerp that slerps the basis vectors because you have to to keep them orthogonal but lerps the translation
+    static lerp(a, b, t) {
         return new Mat4({
             X: Vec3.slerp(a.X, b.X, t),
             Y: Vec3.slerp(a.Y, b.Y, t),

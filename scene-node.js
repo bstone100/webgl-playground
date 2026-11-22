@@ -30,10 +30,16 @@ export class SceneNode {
         this.scaleMatrix = scaleMatrix;
         this.animation = animation;
 
+        // let's sort the animation keyframes by t
+        if (this.animation && this.animation.keyframes) {
+            this.animation.keyframes.sort((a, b) => a.t - b.t);
+        }
+
         this.children = children;
         this.parent = parent;
     }
 
+    // this needs to account for where we are in the animation
     get localTransform() {
         return this.translationMatrix.times(this.rotationMatrix).times(this.scaleMatrix);
     }
@@ -48,6 +54,106 @@ export class SceneNode {
             return this.localTransform;
         }
     }
+
+    // let's rewrite the transform functions to account for animation
+    // sceneInfo will be optionally passed, and what we need from it is just startTime and currentTime
+    getLocalTransform({startTime, currentTime}) {
+        if (startTime === undefined || currentTime === undefined || !this.animation) {
+            return this.translationMatrix.times(this.rotationMatrix).times(this.scaleMatrix);
+        }
+
+        // okay we have start time and current time which is enough info to control an animation
+
+        // now how do we control the animation?
+        // "animation": {
+        //     "duration": 10,
+        //         "unit": "s",
+        //         "iterations": 1,
+        //         "easing": "linear",
+        //         "keyframes": [
+        //         {
+        //             "t": 0,
+
+
+        // we need to find where we are in the timeline
+        // that means first we find t
+        // we also need to be counting which iteration we're on
+        // actually we don't need to count that, it is computable from the current time
+
+        // give defaults to unset properties
+        const {
+            duration = 3000,
+            unit = "ms",
+            iterations = 1,
+            easing = "linear",
+            keyframes = [] // we need a plan for when there are 0 or 1 keyframes
+        } = this.animation;
+
+        const timeElapsedMs = currentTime - startTime;
+
+        const durationMs = unit === "ms" ? duration : duration * 1000;
+
+        // what iteration are we on?
+        // if time elapsed = 7000, duration = 3000, its iteration Math.floor(elapsed / duration)
+        // assuming that we start on iteration 0
+
+        const iteration = Math.floor(timeElapsedMs / durationMs);
+
+        // if iteration >= iterations then we don't animate
+        // in that case we can either set the transform via the properties or via the last keyframe
+
+        // now find t, which is what percent of the way through the current iteration are we
+
+        const tIteration = (timeElapsedMs % durationMs) / durationMs;
+
+        // now we need to find the two keyframes that we're in between
+
+        // each keyframe has a t associated with it
+        // so tIteration is in between two of those t values
+
+        // keyframes are already sorted by t
+        // we need to find the "before" keyframe and the "after" keyframe
+
+        // we can use the length of the keyframes array to find the correct index of the before keyframe
+
+        // keyframe indexes are [0, keyframes.length - 1]
+        // we can map tIteration from [0, 1] to [0, keyframes.length - 1]
+
+        // do special handling here for 0 or 1 keyframe
+        // for 0 just use the transform properties of this node
+        // for 1 always use the keyframe's transforms, don't interpolate
+
+        // within a keyframe, for any of the 3 transform types that aren't set, use this node's properties instead
+
+        if (keyframes.length >= 2) {
+            // note: ensure these are both valid
+            const kf1Index = Math.floor(tIteration * keyframes.length - 1);
+            const kf2Index = kf1Index + 1;
+
+            const kf1 = keyframes[kf1Index];
+            const kf2 = keyframes[kf2Index];
+
+            // now build the local transform at both keyframes and then slerp between them
+
+            const kf1Transform = kf1.translationMatrix.times(kf1.rotationMatrix).times(kf1.scaleMatrix);
+            const kf2Transform = kf2.translationMatrix.times(kf2.rotationMatrix).times(kf2.scaleMatrix);
+
+            // now we need to identify the t value to use for slerping between the keyframes
+            const tKeyframe = (tIteration - kf1.t) / (kf2.t - kf1.t);
+
+            // now we can slerp
+            return Mat4.slerp(kf1Transform, kf2Transform, tKeyframe);
+        }
+    }
+
+    getWorldTransform(sceneInfo) {
+        if (this.parent) {
+            return this.parent.getWorldTransform(sceneInfo).times(this.getLocalTransform(sceneInfo));
+        } else {
+            return this.getLocalTransform(sceneInfo);
+        }
+    }
+
 }
 
 

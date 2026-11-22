@@ -1,4 +1,5 @@
 import {Vec4} from "./vec4.js";
+import {lerp} from "../helpers.js";
 
 export class Vec3 extends Vec4 {
     constructor(props) {
@@ -119,6 +120,28 @@ export class Vec3 extends Vec4 {
 
     static negative(vec3) {
         return vec3.times(-1);
+    }
+
+    // this takes you from point a to point b in a straight line
+    // that makes sense for points but not directions
+    static lerp(a, b, t) {
+        return new Vec3({
+            x: lerp(a.x, b.x, t),
+            y: lerp(a.y, b.y, t),
+            z: lerp(a.z, b.z, t)
+        });
+    }
+
+    // we need to take a spherical path from a to b
+    // that means to get from (0,0,1) to (0,0,-1) we need a vector that rotates about the origin
+    // for example we could travel on the xz plane, or we could travel on the zy plane
+    // we could travel on any plane that is parallel to the z axis
+    // those two vectors are a special case because they are parallel with each other which means that there are an infinite number of valid spherical paths
+    // but for vectors that are not parallel with each other, there are only two paths, a shorter path and a longer path
+
+    // slerping between vec2s is simple, you just lerp between the angles of a and b to get angle of c
+    static slerp(a, b, t) {
+
     }
 }
 

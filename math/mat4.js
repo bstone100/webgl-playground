@@ -203,6 +203,16 @@ export class Mat4 {
         });
     }
 
+    // I think it is sufficient to lerp the columns because that's lerping the basis vectors and the translation
+    // but are we certain that the basis vectors will stay orthogonal?
+    // yeah okay this isn't going to work we need to slerp
+    // because if for example the z basis vector is lerping from (0,0,1) to (0,0,-1), we need it to take a spherical path
+    // if we just lerp then the direction will flip abruptly at t = 0.5
+    // for translation I think it's okay to lerp
+    static slerp(a, b, t) {
+
+    }
+
     get X() {
         return new Vec4({
             x: this.m[0][0],

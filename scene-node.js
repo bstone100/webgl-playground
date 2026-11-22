@@ -10,6 +10,7 @@ export class SceneNode {
             translationMatrix = new Mat4,
             rotationMatrix = new Mat4,
             scaleMatrix = new Mat4,
+            animation = null,
             children = [],
             parent = null
         } = props;
@@ -27,7 +28,7 @@ export class SceneNode {
         this.translationMatrix = translationMatrix;
         this.rotationMatrix = rotationMatrix;
         this.scaleMatrix = scaleMatrix;
-
+        this.animation = animation;
 
         this.children = children;
         this.parent = parent;

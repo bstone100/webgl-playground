@@ -136,29 +136,67 @@
       "name": "camera sitting on +z axis staring down z axis",
       "type": "Camera",
       "fieldOfView": 45,
-      "translationMatrix": {
-        "type": "Mat4",
-        "position": {
-          "type": "Vec3",
-          "x": 0,
-          "y": -1,
-          "z": 8
-        }
-      },
-      "rotationMatrix": {
-        "type": "Mat4",
-        "lookAt": {
-          "type": "Vec3",
-          "x": 0,
-          "y": 0,
-          "z": 0
-        },
-        "from": {
-          "type": "Vec3",
-          "x": 0,
-          "y": -1,
-          "z": 8
-        }
+      "animation": {
+        "duration": 10,
+        "unit": "seconds",
+        "iterations": 1,
+        "easing": "linear",
+        "keyframes": [
+          {
+            "t": 0,
+            "translationMatrix": {
+              "type": "Mat4",
+              "position": {
+                "type": "Vec3",
+                "x": 0,
+                "y": 5,
+                "z": 8
+              }
+            },
+            "rotationMatrix": {
+              "type": "Mat4",
+              "lookAt": {
+                "type": "Vec3",
+                "x": 0,
+                "y": 0,
+                "z": 0
+              },
+              "from": {
+                "type": "Vec3",
+                "x": 0,
+                "y": 5,
+                "z": 8
+              }
+            }
+          },
+          {
+            "t": 1,
+            "translationMatrix": {
+              "type": "Mat4",
+              "position": {
+                "type": "Vec3",
+                "x": 0,
+                "y": 5,
+                "z": -8
+              }
+            },
+            "rotationMatrix": {
+              "type": "Mat4",
+              "lookAt": {
+                "type": "Vec3",
+                "x": 0,
+                "y": 0,
+                "z": 0
+              },
+              "from": {
+                "type": "Vec3",
+                "x": 0,
+                "y": 5,
+                "z": -8
+              }
+            }
+          }
+        ]
       }
     }
   ]

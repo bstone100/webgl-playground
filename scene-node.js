@@ -161,7 +161,7 @@ export class SceneNode {
 
         // need to apply easing function here to tKeyframe
         if (easing.type === "cubic-bezier") {
-            tKeyframe = cubicBezier(...easing.values, tKeyframe).y;
+            tKeyframe = cubicBezier(...easing.values, tKeyframe);
         } else {
             tKeyframe = easingFunction(easing.type, tKeyframe);
         }

@@ -137,11 +137,12 @@
       "type": "Camera",
       "fieldOfView": 45,
       "animation": {
-        "duration": 500,
+        "duration": 5000,
         "unit": "ms",
         "iterations": "infinite",
         "easing": {
-          "type": "ease-in-out"
+          "type": "cubic-bezier",
+          "values": [1, -1, 0, 2]
         },
         "direction": "alternate",
         "keyframes": [

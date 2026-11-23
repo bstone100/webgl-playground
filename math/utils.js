@@ -3,6 +3,7 @@ import {Vec2} from "./vec2.js";
 import {Vec3} from "./vec3.js";
 import {Mat4} from "./mat4.js";
 import {Vec4} from "./vec4.js";
+import {Point2} from "./point2.js";
 
 export function lerp(a, b, t) {
     if (typeof a === "number") {
@@ -86,34 +87,61 @@ export function degreesToRadians(degrees) {
 export function easingFunction(f, t) {
     switch (f) {
         case "linear": return t;
-        case "ease": return cubicBezier(0.25, 0.1, 0.25, 1.0, t).y;
-        case "ease-in": return cubicBezier(0.42, 0, 1.0, 1.0, t).y;
-        case "ease-out": return cubicBezier(0, 0, 0.58, 1.0, t).y;
-        case "ease-in-out": return cubicBezier(0.42, 0, 0.58, 1.0, t).y;
+        case "ease": return cubicBezier(0.25, 0.1, 0.25, 1.0, t);
+        case "ease-in": return cubicBezier(0.42, 0, 1.0, 1.0, t);
+        case "ease-out": return cubicBezier(0, 0, 0.58, 1.0, t);
+        case "ease-in-out": return cubicBezier(0.42, 0, 0.58, 1.0, t);
     }
     return t;
 }
 
+// okay this is totally wrong even though it looks right
+// the problem is that t is the wrong t
+// t represents x on the graph of the bezier curve
+// what I implemented below finds a point P on the curve given a value s
+// but that value s is unknown and needs to be computed from x which is the input to this function
+// once s is solved, then y can be computed from s
 export function cubicBezier(x1, y1, x2, y2, t) {
-    const P0 = new Vec2({x: 0, y: 0});
-    const P1 = new Vec2({x: x1, y: y1});
-    const P2 = new Vec2({x: x2, y: y2});
-    const P3 = new Vec2({x: 1, y: 1});
+    // x(s) = (1-s)^3 * p0.x + 3(1-s)^2 * s * p1.x + 3(1-s)s^2 * p2.x + s^3 * p3.x
 
-    const i = 1 - t;
+    // p0.x = 0, p3.x = 1
 
-    const A = P0.times(i).plus(P1.times(t));
-    const B = P1.times(i).plus(P2.times(t));
-    const C = P2.times(i).plus(P3.times(t));
+    // we know all the x values in the equation, and x(s) = t = x
+    // 0 = (1-s)^3 * p0.x + 3(1-s)^2 * s * p1.x + 3(1-s)s^2 * p2.x + s^3 * p3.x - t
 
-    const X = A.times(i).plus(B.times(t));
-    const Y = B.times(i).plus(C.times(t));
+    // so we need to find the s value that makes that equation equal to 0
+    // s is in [0,1]
 
-    const P = X.times(i).plus(Y.times(t));
+    // I'm going to start with an aggressive method
+    // try 100 samples of s and pick the one closest to 0
+    // or leave t on the left side of the equation and try to find s that makes the right side equal to t
 
-    // I think we just need to return P.y
-    // if that's correct I wonder if we even need to look at the x values
-    return P;
+    // find s!!!
+
+    let closestS = t;
+    let smallestDelta = Infinity;
+
+    // this is crappy but I want to use it for now
+    for (let s = 0; s < 1; s += 0.01) {
+        // compute right side of equation
+
+        const rightSide = 3 * Math.pow((1 - s), 2) * s * x1 + 3 * (1 - s) * Math.pow(s, 2) * x2 + Math.pow(s, 3);
+
+        const delta = Math.abs(t - rightSide);
+
+        if (delta < smallestDelta) {
+            smallestDelta = delta;
+            closestS = s;
+        }
+        if (delta < 0.01) {
+            break;
+        }
+    }
+
+    // okay now we have s
+    // need to compute y
+
+    return 3 * Math.pow((1 - closestS), 2) * closestS * y1 + 3 * (1 - closestS) * Math.pow(closestS, 2) * y2 + Math.pow(closestS, 3);
 }
 
 export function clamp(min, val, max) {

@@ -189,13 +189,6 @@ export function drawSceneObject(sceneObject, sceneInfo) {
 }
 
 
-// we need to be able to do linear interpolation between transform matrices
-
-export function lerp(a, b, t) {
-    return a + t * (b - a);
-}
-
-
 
 
 

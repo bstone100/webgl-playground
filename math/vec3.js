@@ -1,6 +1,4 @@
 import {Vec4} from "./vec4.js";
-import {lerp} from "../helpers.js";
-import {Vec2} from "./vec2.js";
 
 export class Vec3 extends Vec4 {
     constructor(props) {
@@ -121,46 +119,6 @@ export class Vec3 extends Vec4 {
 
     static negative(vec3) {
         return vec3.times(-1);
-    }
-
-    // this takes you from point a to point b in a straight line
-    // that makes sense for points but not directions
-    static lerp(a, b, t) {
-        return new Vec3({
-            x: lerp(a.x, b.x, t),
-            y: lerp(a.y, b.y, t),
-            z: lerp(a.z, b.z, t)
-        });
-    }
-
-    static slerp(a, b, t) {
-        // okay we need to find two angles representing both vectors
-
-        // first set of angles is for a and b both projected onto the the xy plane
-        // we just need to ignore the z values
-        // we can slerp the two projections onto the xy plane
-
-        // this will give us a vector in the correct direction on the xy plane
-        // Vec2.slerp just uses x and y
-        // ignore the length of this vector
-        const xyVec = Vec2.slerp(new Vec2({x: a.x, y: a.y}), new Vec2({x: b.x, y: b.y}), t).normalize();
-
-        // we also need a vector on the xz plane
-        // so we should project a and b onto the xz plane which just means ignore the y value
-
-        // we can just Vec2.slerp with xz from both
-
-        const xzVec = Vec2.slerp(new Vec2({x: a.x, y: a.z}), new Vec2({x: b.x, y: b.z}), t).normalize();
-
-        // okay now we have two 2d vectors representing our 3d vector
-        // I think the 3d vector can just grab y from the xy vec and grab x and z from the xz vec
-
-        // this vector points in the final direction, now just need to lerp the length
-        const xyzVec = new Vec3({x: xzVec.x, y: xyVec.y, z: xzVec.y}).normalize();
-
-        const length = lerp(a.length(), b.length(), t);
-
-        return xyzVec.times(length);
     }
 }
 

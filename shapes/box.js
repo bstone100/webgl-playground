@@ -122,7 +122,7 @@ export class Box extends SceneObject {
             this.gl.uniformMatrix4fv(
                 this.gl.getUniformLocation(this.#shaderProgram, `u_spotLights[${i}].worldTransform`),
                 false,
-                spotLight.worldTransform.toArray()
+                spotLight.getWorldTransform(sceneInfo).toArray()
             );
             this.gl.uniform4fv(
                 this.gl.getUniformLocation(this.#shaderProgram, `u_spotLights[${i}].color`),
@@ -150,7 +150,7 @@ export class Box extends SceneObject {
             this.gl.uniformMatrix4fv(
                 this.gl.getUniformLocation(this.#shaderProgram, `u_pointLights[${i}].worldTransform`),
                 false,
-                pointLight.worldTransform.toArray()
+                pointLight.getWorldTransform(sceneInfo).toArray()
             );
             this.gl.uniform4fv(
                 this.gl.getUniformLocation(this.#shaderProgram, `u_pointLights[${i}].color`),
@@ -163,7 +163,7 @@ export class Box extends SceneObject {
         // let's assume the scene has a camera
         // there might be multiple cameras but one of them will be considered active
         const camera = sceneInfo.cameras[0];
-        const cameraWorldTransform = camera.worldTransform;
+        const cameraWorldTransform = camera.getWorldTransform(sceneInfo);
         const viewMatrix = cameraWorldTransform.toInverse();
 
         this.gl.uniformMatrix4fv(
@@ -212,7 +212,7 @@ export class Box extends SceneObject {
         this.gl.uniformMatrix4fv(
             this.gl.getUniformLocation(this.#shaderProgram, "u_objectWorldTransform"),
             false,
-            this.worldTransform.toArray()
+            this.getWorldTransform(sceneInfo).toArray()
         );
 
         // now finally draw

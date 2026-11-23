@@ -1,4 +1,5 @@
 import {Mat4} from "./math/mat4.js";
+import {slerp} from "./math/utils.js";
 
 // a SceneNode has a transform but no geometry
 export class SceneNode {
@@ -37,22 +38,6 @@ export class SceneNode {
 
         this.children = children;
         this.parent = parent;
-    }
-
-    // this needs to account for where we are in the animation
-    get localTransform() {
-        return this.translationMatrix.times(this.rotationMatrix).times(this.scaleMatrix);
-    }
-
-    // walk the tree to the root
-    // at each level do parent.worldTransform * this.localTransform
-    // we need to be caching this information
-    get worldTransform() {
-        if (this.parent) {
-            return this.parent.worldTransform.times(this.localTransform);
-        } else {
-            return this.localTransform;
-        }
     }
 
     // let's rewrite the transform functions to account for animation
@@ -127,7 +112,7 @@ export class SceneNode {
 
         if (keyframes.length >= 2) {
             // note: ensure these are both valid
-            const kf1Index = Math.floor(tIteration * keyframes.length - 1);
+            const kf1Index = Math.floor(tIteration * (keyframes.length - 1));
             const kf2Index = kf1Index + 1;
 
             const kf1 = keyframes[kf1Index];
@@ -135,14 +120,29 @@ export class SceneNode {
 
             // now build the local transform at both keyframes and then slerp between them
 
-            const kf1Transform = kf1.translationMatrix.times(kf1.rotationMatrix).times(kf1.scaleMatrix);
-            const kf2Transform = kf2.translationMatrix.times(kf2.rotationMatrix).times(kf2.scaleMatrix);
+            // extract the matrices from the keyframes, using this object's properties as defaults
+            const {
+                translationMatrix: T1 = this.translationMatrix,
+                rotationMatrix: R1 = this.rotationMatrix,
+                scaleMatrix: S1 = this.scaleMatrix
+            } = kf1;
+
+            const {
+                translationMatrix: T2 = this.translationMatrix,
+                rotationMatrix: R2 = this.rotationMatrix,
+                scaleMatrix: S2 = this.scaleMatrix
+            } = kf2;
+
+            const kf1Transform = T1.times(R1).times(S1);
+            const kf2Transform = T2.times(R2).times(S2);
 
             // now we need to identify the t value to use for slerping between the keyframes
             const tKeyframe = (tIteration - kf1.t) / (kf2.t - kf1.t);
 
+            // need to apply easing function here to tKeyframe
+
             // now we can slerp
-            return Mat4.slerp(kf1Transform, kf2Transform, tKeyframe);
+            return slerp(kf1Transform, kf2Transform, tKeyframe);
         }
     }
 

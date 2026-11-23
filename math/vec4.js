@@ -1,5 +1,3 @@
-// import {Vec3} from "./vec3.js";
-
 // note: maybe we should make Vec4 extend Vec3 instead of the other way around
 export class Vec4 {
     constructor(props = {}) {
@@ -71,10 +69,6 @@ export class Vec4 {
     set a(val) {
         this.w = val;
     }
-
-    // get xyz() {
-    //     return new Vec3({x: this.x, y: this.y, z: this.z});
-    // }
 }
 
 

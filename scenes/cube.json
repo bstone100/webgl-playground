@@ -137,10 +137,13 @@
       "type": "Camera",
       "fieldOfView": 45,
       "animation": {
-        "duration": 10,
-        "unit": "s",
-        "iterations": 1,
-        "easing": "linear",
+        "duration": 500,
+        "unit": "ms",
+        "iterations": "infinite",
+        "easing": {
+          "type": "ease-in-out"
+        },
+        "direction": "alternate",
         "keyframes": [
           {
             "t": 0,
@@ -175,9 +178,9 @@
               "type": "Mat4",
               "position": {
                 "type": "Vec3",
-                "x": 0,
+                "x": 2,
                 "y": 5,
-                "z": -8
+                "z": 8
               }
             },
             "rotationMatrix": {
@@ -190,9 +193,9 @@
               },
               "from": {
                 "type": "Vec3",
-                "x": 0,
+                "x": 2,
                 "y": 5,
-                "z": -8
+                "z": 8
               }
             }
           }

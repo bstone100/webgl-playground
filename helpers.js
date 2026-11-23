@@ -48,10 +48,6 @@ export function createProgram(gl, vertexShader, fragmentShader) {
     gl.deleteProgram(program);
 }
 
-export function degreesToRadians(degrees) {
-    return degrees / 180 * Math.PI;
-}
-
 // mainly just add a type property for the class
 // usage: Object json = sceneToJson(SceneNode sceneRoot)
 export function sceneNodeToObject(sceneNode) {

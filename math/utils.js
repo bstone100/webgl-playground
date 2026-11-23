@@ -78,9 +78,47 @@ export function slerp(a, b, t) {
     }
 }
 
+export function degreesToRadians(degrees) {
+    return degrees / 180 * Math.PI;
+}
 
+// values from CSS
+export function easingFunction(f, t) {
+    switch (f) {
+        case "linear": return t;
+        case "ease": return cubicBezier(0.25, 0.1, 0.25, 1.0, t).y;
+        case "ease-in": return cubicBezier(0.42, 0, 1.0, 1.0, t).y;
+        case "ease-out": return cubicBezier(0, 0, 0.58, 1.0, t).y;
+        case "ease-in-out": return cubicBezier(0.42, 0, 0.58, 1.0, t).y;
+    }
+    return t;
+}
 
+export function cubicBezier(x1, y1, x2, y2, t) {
+    const P0 = new Vec2({x: 0, y: 0});
+    const P1 = new Vec2({x: x1, y: y1});
+    const P2 = new Vec2({x: x2, y: y2});
+    const P3 = new Vec2({x: 1, y: 1});
 
+    const i = 1 - t;
+
+    const A = P0.times(i).plus(P1.times(t));
+    const B = P1.times(i).plus(P2.times(t));
+    const C = P2.times(i).plus(P3.times(t));
+
+    const X = A.times(i).plus(B.times(t));
+    const Y = B.times(i).plus(C.times(t));
+
+    const P = X.times(i).plus(Y.times(t));
+
+    // I think we just need to return P.y
+    // if that's correct I wonder if we even need to look at the x values
+    return P;
+}
+
+export function clamp(min, val, max) {
+    return Math.min(Math.max(val, min), max);
+}
 
 
 

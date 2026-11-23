@@ -1,5 +1,5 @@
 import {Vec4} from "./vec4.js";
-import {degreesToRadians} from "../helpers.js";
+import {degreesToRadians} from "./utils.js";
 import {Vec3} from "./vec3.js";
 
 export class Mat4 {

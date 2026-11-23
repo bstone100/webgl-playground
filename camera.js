@@ -1,6 +1,6 @@
 import {SceneNode} from "./scene-node.js";
 import {Mat4} from "./math/mat4.js";
-import { degreesToRadians } from "./helpers.js";
+import { degreesToRadians } from "./math/utils.js";
 
 export class Camera extends SceneNode {
     constructor(props = {}) {

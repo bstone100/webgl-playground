@@ -19,6 +19,78 @@
         "g": 0,
         "b": 0,
         "a": 1
+      },
+      "animation": {
+        "duration": 2000,
+        "unit": "ms",
+        "iterations": "infinite",
+        "easing": {
+          "type": "ease-in-out-cubic"
+        },
+        "keyframes": [
+          {
+            "t": 0,
+            "scaleMatrix": {
+              "type": "Mat4",
+              "operations": [
+                {
+                  "type": "scale",
+                  "x": 1,
+                  "y": 1,
+                  "z": 1
+                }
+              ]
+            }
+          },
+          {
+            "t": 0.25,
+            "scaleMatrix": {
+              "type": "Mat4",
+              "operations": [
+                {
+                  "type": "scale",
+                  "x": 0.25, "y": 0.25, "z": 0.25
+                }
+              ]
+            }
+          },
+          {
+            "t": 0.5,
+            "scaleMatrix": {
+              "type": "Mat4",
+              "operations": [
+                {
+                  "type": "scale",
+                  "x": 0.75, "y": 0.75, "z": 0.75
+                }
+              ]
+            }
+          },
+          {
+            "t": 0.75,
+            "scaleMatrix": {
+              "type": "Mat4",
+              "operations": [
+                {
+                  "type": "scale",
+                  "x": 1.25, "y": 1.25, "z": 1.25
+                }
+              ]
+            }
+          },
+          {
+            "t": 1,
+            "scaleMatrix": {
+              "type": "Mat4",
+              "operations": [
+                {
+                  "type": "scale",
+                  "x": 1, "y": 1, "z": 1
+                }
+              ]
+            }
+          }
+        ]
       }
     },
     {
@@ -136,70 +208,14 @@
       "name": "camera sitting on +z axis staring down z axis",
       "type": "Camera",
       "fieldOfView": 45,
-      "animation": {
-        "duration": 2000,
-        "unit": "ms",
-        "iterations": "infinite",
-        "easing": {
-          "type": "ease-in-out-cubic"
-        },
-        "direction": "alternate",
-        "keyframes": [
-          {
-            "t": 0,
-            "translationMatrix": {
-              "type": "Mat4",
-              "position": {
-                "type": "Vec3",
-                "x": 0,
-                "y": 5,
-                "z": 8
-              }
-            },
-            "rotationMatrix": {
-              "type": "Mat4",
-              "lookAt": {
-                "type": "Vec3",
-                "x": 0,
-                "y": 0,
-                "z": 0
-              },
-              "from": {
-                "type": "Vec3",
-                "x": 0,
-                "y": 5,
-                "z": 8
-              }
-            }
-          },
-          {
-            "t": 1,
-            "translationMatrix": {
-              "type": "Mat4",
-              "position": {
-                "type": "Vec3",
-                "x": 2,
-                "y": 5,
-                "z": 8
-              }
-            },
-            "rotationMatrix": {
-              "type": "Mat4",
-              "lookAt": {
-                "type": "Vec3",
-                "x": 0,
-                "y": 0,
-                "z": 0
-              },
-              "from": {
-                "type": "Vec3",
-                "x": 2,
-                "y": 5,
-                "z": 8
-              }
-            }
-          }
-        ]
+      "translationMatrix": {
+        "type": "Mat4",
+        "position": {
+          "type": "Vec3",
+          "x": 0,
+          "y": 1,
+          "z": 10
+        }
       }
     }
   ]

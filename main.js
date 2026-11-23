@@ -1,4 +1,7 @@
 import {drawSceneObject, objectToClassInstance, objectToSceneNode, resizeCanvasToDisplaySize} from "./helpers.js";
+import {Vec3} from "./math/vec3.js";
+import {Mat4} from "./math/mat4.js";
+import {radiansToDegrees} from "./math/utils.js";
 
 const canvas = document.querySelector("canvas");
 const gl = canvas.getContext("webgl2");
@@ -47,30 +50,111 @@ selectSceneElement.addEventListener("change", setActiveScene);
 await setActiveScene();
 
 
-// we need to have a pseudo animation controller
-// all of our animations will be written in terms of arbitrary t values and duration values
-// t is from 0 to 1, duration is in ms or s
+// let's add event listeners to the canvas and set up camera controls
 
-// this is t = 0
-// all of our animations start now
+let isMouseDown = false;
+let x = 0;
+let y = 0;
+canvas.addEventListener("mousedown", event => {
+    x = event.offsetX;
+    y = event.offsetY;
+    isMouseDown = true;
+});
+canvas.addEventListener("mousemove", event => {
+    if (isMouseDown) {
+        // do something here
 
-// how do we tell our objects which transform to use?
+        // okay so the user has pressed the mouse button down and is now moving the cursor in some direction
+        // I think for basic rotation, we just need to orbit the camera around the origin in a sphere
+        // cursor going right means orbit clockwise about the world y axis
+        // cursor going left means orbit counterclockwise about world y axis
+        // up and down are orbiting about some vector on the xz plane
+        // that vector is perpendicular to the vector between the camera and the y axis
 
-// our objects need to know the start time and the current time
+        // I actually think I'm overcomplicating it
+        // it would make more sense if we defined the camera's position in terms of azimuth and altitude angles
+        // meaning in spherical coordinates
+        // and then moving the cursor up means move the camera's position down by n altitude degrees (altitude--)
+        // moving the cursor down means move the camera's position up by n altitude degrees (altitude++)
 
-// for an object with animation duration 3 seconds, t = current time / 3, during the first iteration
-// if there are just 2 keyframes, one at t=0 and one at t=1, then the current position is a simple slerp between kf1 and kf2
+        // let's start with up and down
 
-// if there are multiple keyframes, then t tells us where we are on the timeline
-// we will be in the middle of two keyframes, this means there will be another t value telling us where between the two keyframes we are
-// so then we'll slerp between those two keyframes
-// what I'm not certain about is if easing should be applied for the t spanning the whole timeline
-// or should easing be applied in between each keyframe as well
-// I'm thinking easing should be applied between each keyframe but not across the timeline as a whole, should verify how css does this
-// okay I'm pretty sure css applies the easing function in between keyframes, not across the timeline as a whole
+        // we don't care about total offset from the corner of the element
+        // we just care about the delta from the previous mouse event
+
+        const deltaX = event.offsetX - x; // so moving cursor right is +delta, left is -delta
+        const deltaY_px = event.offsetY - y; // moving cursor down is +delta, up is -delta
 
 
-// let's just add the start time and the current time to the scene info that gets passed to the draw() call of each object
+        // how do we decide how many degrees to move?
+        // we could measure the delta as a percent of canvas dimensions
+        // so moving cursor up by canvas.height / 2 = move camera down 90 degrees
+        // moving cursor down by canvas.height / 2 = move camera up 90 degrees
+        // note: use css height not canvas height, well actually we're making them equal so its okay
+
+        // need to map delta from px to radians
+        // -deltaY means angle delta is negative as well
+        // +deltaY means angle delta is positive
+        // mapping [-height/2, height/2] to [-pi/2, pi/2]
+
+        const deltaY_angle = deltaY_px * Math.PI / canvas.height;
+
+        // now apply that angle to the camera's translation
+
+        // we need to find the current angle of the camera position projected onto the xy plane
+
+        const camera = activeSceneInfo.cameras[0];
+        const currentTranslation = camera.translationMatrix.T;
+        const radius = currentTranslation.length();
+
+        const currentXyAngle = Math.atan2(currentTranslation.y, currentTranslation.x);
+
+        const newXyAngle = currentXyAngle + deltaY_angle;
+
+        const newY = Math.sin(newXyAngle) * radius;
+
+        const newTranslation = new Vec3({x: currentTranslation.x, y: newY, z: currentTranslation.z}).normalize().times(radius);
+
+        camera.translationMatrix.setTranslation(newTranslation);
+
+        // we also need to update the rotation matrix so that the camera is still pointing at the origin
+
+        camera.rotationMatrix = new Mat4({
+            lookAt: new Vec3({x: 0, y: 0, z: 0}),
+            from: newTranslation
+        });
+
+        console.log({
+            prevY: y,
+            currY: event.offsetY,
+            deltaY_px,
+            deltaY_angle_degrees: radiansToDegrees(deltaY_angle),
+            currentTranslation,
+            radius,
+            currentXyAngle_degrees: radiansToDegrees(currentXyAngle),
+            newXyAngle_degrees: radiansToDegrees(newXyAngle),
+            newY,
+            newTranslation
+        });
+
+
+        x = event.offsetX;
+        y = event.offsetY;
+    }
+});
+canvas.addEventListener("mouseup", event => {
+    if (isMouseDown) {
+        // do something here
+        x = 0;
+        y = 0;
+        isMouseDown = false;
+    }
+
+});
+
+
+
+
 activeSceneInfo.startTime = performance.now();
 
 // this function is called every frame
@@ -79,7 +163,7 @@ function draw() {
 
     gl.viewport(0, 0, canvas.width, canvas.height);
 
-    gl.clearColor(0, 0, 0, 1);
+    gl.clearColor(1, 1, 1, 1);
     gl.clearDepth(1);
     gl.enable(gl.DEPTH_TEST);
     gl.depthFunc(gl.LEQUAL);
@@ -87,24 +171,8 @@ function draw() {
 
     activeSceneInfo.currentTime = performance.now();
 
-    // now we need to go through all the geometry objects in our scene and draw them
-
-    // scene is a tree so we need to recursively call draw() on each SceneObject
-    // we also need to do some pre processing on the tree to gather the lights and cameras into flat lists
-    // and we should compute the world transforms for the lights and cameras
-
-    // we need to call draw() on the objects with a parameter holding a pointLights array, spotLights array, ambientLights array,
-    // cameras array
-    // we will just use ambientLights[0] and cameras[0] for now in our shaders
-
-    // okay now we have the scene info collected in activeSceneInfo and the root
-
     // recursively draw the scene
     if (activeScene) {
-        // we should precompute the world transform for all the entities in the scene info
-        // because each SceneObject will need to pass those transforms to its shader
-        // actually that isn't necessary if SceneNode caches its world transform
-
         drawSceneObject(activeScene, activeSceneInfo);
     }
 

@@ -42,20 +42,10 @@ export class SceneNode {
 
     // let's rewrite the transform functions to account for animation
     // sceneInfo will be optionally passed, and what we need from it is just startTime and currentTime
-    getLocalTransform({startTime, currentTime}) {
+    getLocalTransform({startTime, currentTime} = {}) {
         if (startTime === undefined || currentTime === undefined || !this.animation) {
             return this.translationMatrix.times(this.rotationMatrix).times(this.scaleMatrix);
         }
-
-        // now how do we control the animation?
-        // "animation": {
-        //     "duration": 10,
-        //         "unit": "s",
-        //         "iterations": 1,
-        //         "easing": "linear",
-        //         "keyframes": [
-        //         {
-        //             "t": 0,
 
         // give defaults to unset properties
         const {
@@ -112,25 +102,13 @@ export class SceneNode {
             }
         }
 
-        // okay there is an edge case which is when tIteration is exactly 1
-        // we may want to also consider cases where it's less than 0 or greater than 1
-
-        // the problem with exactly 1 is that doing floor(tIteration * (length - 1)) gives the last keyframe, but then kf2 will be out of index
-        // I think if the value is exactly 1 we should set kf1index to 1 less so that kf2 will be the last index
-        // t will still be 1 and slerp will just take on the last keyframe
-
-        // also, should we clamp tIteration to 0,1 just in case
-        // I don't think that's necessary, elapsed mod duration will always be in [0, duration)
-        // but I think floating point error means that the division by duration can sometimes produce 1
-
-        // note: ensure these are both valid
-
         // doing this just in case
         tIteration = clamp(0, tIteration, 1);
 
         let kf1Index;
         let kf2Index;
         if (tIteration === 1) {
+            // this is an edge case where due to floating point error (elapsed % duration) / duration gives 1
             kf1Index = keyframes.length - 2;
             kf2Index = keyframes.length - 1;
         } else {

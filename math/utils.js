@@ -83,6 +83,10 @@ export function degreesToRadians(degrees) {
     return degrees / 180 * Math.PI;
 }
 
+export function radiansToDegrees(radians) {
+    return radians / Math.PI * 180;
+}
+
 // see: https://easings.net/
 export function easingFunction(f, x) {
     switch (f) {

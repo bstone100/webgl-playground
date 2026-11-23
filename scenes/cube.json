@@ -212,7 +212,7 @@
         "type": "Mat4",
         "position": {
           "type": "Vec3",
-          "x": 0,
+          "x": 2,
           "y": 1,
           "z": 10
         }

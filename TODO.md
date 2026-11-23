@@ -1,0 +1,23 @@
+# TODO
+
+- [ ] implement ability to move camera around with mouse and keyboard
+- [ ] finish the other shapes
+- [ ] move shader code and other common code out of box.js
+- [ ] add support for textures
+- [ ] add support for more material properties like metalness
+- [ ] improve cubic bezier algorithm implementation
+- [ ] add UI controls for adjusting properties of an object
+  - [ ] sliders for transform
+  - [ ] color picker
+  - [ ] change color of lights
+  - [ ] animation properties
+- [ ] be able to select an object by clicking on it
+- [ ] add controls to create and delete primitives
+- [ ] visualize lights and cameras in the scene
+- [ ] be able to switch between different camera views
+- [ ] show world and local coordinate axes and grid planes
+- [ ] add support for skyboxes
+- [ ] add support for exporting and importing scene to a file
+- [ ] add support for shadows
+- [ ] allow objects to animate their location along a bezier curve
+- [ ] be able to import 3d models

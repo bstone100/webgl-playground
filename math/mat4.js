@@ -120,6 +120,30 @@ export class Mat4 {
         });
     }
 
+    getRotationX() {
+        return new Vec3({
+            x: this.m[0][0],
+            y: this.m[1][0],
+            z: this.m[2][0]
+        });
+    }
+
+    getRotationY() {
+        return new Vec3({
+            x: this.m[0][1],
+            y: this.m[1][1],
+            z: this.m[2][1]
+        });
+    }
+
+    getRotationZ() {
+        return new Vec3({
+            x: this.m[0][2],
+            y: this.m[1][2],
+            z: this.m[2][2]
+        });
+    }
+
     static translate({x = 0, y = 0, z = 0}) {
         return new Mat4({
             m: [

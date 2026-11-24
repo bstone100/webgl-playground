@@ -151,7 +151,24 @@ export function clamp(min, val, max) {
     return Math.min(Math.max(val, min), max);
 }
 
+export function cartesianToSpherical(vec3) {
+    const radius = vec3.length();
+    const normalized = vec3.normalize();
 
+    return {
+        radius,
+        theta: Math.atan2(Math.sqrt(1 - Math.pow(normalized.y, 2)), normalized.y),
+        phi: Math.atan2(normalized.x, normalized.z)
+    };
+}
+
+export function sphericalToCartesian(spherical) {
+    return new Vec3({
+        x: Math.sin(spherical.theta) * Math.sin(spherical.phi),
+        y: Math.cos(spherical.theta),
+        z: Math.sin(spherical.theta) * Math.cos(spherical.phi)
+    }).times(spherical.radius);
+}
 
 
 

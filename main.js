@@ -85,6 +85,11 @@ canvas.addEventListener("mousemove", event => {
         const deltaX_px = event.offsetX - x; // so moving cursor right is +delta, left is -delta
         const deltaY_px = event.offsetY - y; // moving cursor down is +delta, up is -delta
 
+        if (deltaX_px === 0 && deltaY_px === 0) {
+            x = event.offsetX;
+            y = event.offsetY;
+            return;
+        }
 
         // how do we decide how many degrees to move?
         // we could measure the delta as a percent of canvas dimensions
@@ -110,8 +115,8 @@ canvas.addEventListener("mousemove", event => {
         // let's first convert the current translation into spherical coordinates: r, theta, phi
         const radius = currentPos.length();
         currentPos = currentPos.normalize();
-        const theta = Math.acos(currentPos.y);
-        const phi = Math.acos(currentPos.z / Math.sin(theta));
+        const theta = Math.atan2(Math.sqrt(1 - Math.pow(currentPos.y, 2)), currentPos.y)
+        const phi = Math.atan2(currentPos.x, currentPos.z);
 
         // now add deltas to theta and phi, then convert back to cartesian
         // I'm subtracting the delta angles now because of the definitions of theta and phi that I'm using
@@ -133,24 +138,23 @@ canvas.addEventListener("mousemove", event => {
             from: newPos
         });
 
-        console.log({
-            prevX: x,
-            prevY: y,
-            currX: event.offsetX,
-            currY: event.offsetY,
-            deltaX_px,
-            deltaX_angle_degrees: radiansToDegrees(deltaX_angle),
-            deltaY_px,
-            deltaY_angle_degrees: radiansToDegrees(deltaY_angle),
-            currentPos,
-            radius,
-            currentXyAngle_degrees: radiansToDegrees(theta),
-            newXyAngle_degrees: radiansToDegrees(newTheta),
-            currentXzAngle_degrees: radiansToDegrees(phi),
-            newXzAngle_degrees: radiansToDegrees(newPhi),
-            newPos
-        });
-
+        // console.log({
+        //     prevX: x,
+        //     prevY: y,
+        //     currX: event.offsetX,
+        //     currY: event.offsetY,
+        //     deltaX_px,
+        //     deltaX_angle_degrees: radiansToDegrees(deltaX_angle),
+        //     deltaY_px,
+        //     deltaY_angle_degrees: radiansToDegrees(deltaY_angle),
+        //     currentPos: currentPos.times(radius),
+        //     radius,
+        //     currentXyAngle_degrees: radiansToDegrees(theta),
+        //     newXyAngle_degrees: radiansToDegrees(newTheta),
+        //     currentXzAngle_degrees: radiansToDegrees(phi),
+        //     newXzAngle_degrees: radiansToDegrees(newPhi),
+        //     newPos
+        // });
 
         x = event.offsetX;
         y = event.offsetY;

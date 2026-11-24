@@ -1,6 +1,9 @@
 # TODO
 
 - [ ] implement ability to move camera around with mouse and keyboard
+  - [x] rotate camera spherically
+  - [ ] pan camera
+  - [x] zoom camera
 - [ ] finish the other shapes
 - [ ] move shader code and other common code out of box.js
 - [ ] add support for textures

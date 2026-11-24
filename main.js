@@ -1,7 +1,7 @@
 import {drawSceneObject, objectToClassInstance, objectToSceneNode, resizeCanvasToDisplaySize} from "./helpers.js";
 import {Vec3} from "./math/vec3.js";
 import {Mat4} from "./math/mat4.js";
-import {cartesianToSpherical, radiansToDegrees, sphericalToCartesian} from "./math/utils.js";
+import {cartesianToSpherical, clamp, radiansToDegrees, sphericalToCartesian} from "./math/utils.js";
 
 const canvas = document.querySelector("canvas");
 const gl = canvas.getContext("webgl2");
@@ -56,8 +56,46 @@ let isMouseDown = false;
 let prevMouseX = 0;
 let prevMouseY = 0;
 
+canvas.addEventListener("wheel", event => {
+    event.preventDefault();
+
+    console.log(event);
+
+    // event.deltaY tells us how much vertical scroll there was, event.deltaMode ensures the unit was pixels
+
+    // when the user scrolls up we should zoom in the camera
+    // when the user scrolls down we should zoom out
+
+    // scrolling up = mouse wheel pushed up or an outward pinch on a trackpad or touchscreen
+
+    // what does it mean to zoom the camera in our out
+    // it means move the camera closer to or further from the origin
+    // so increase or decrease the radius in spherical coordinates
+
+    // how much should we change the radius?
+    // try doing deltaY * 0.1
+
+    if (event.deltaY === 0 || event.deltaMode !== event.DOM_DELTA_PIXEL) return;
+
+    // find the camera again
+    const camera = activeSceneInfo.cameras[0];
+    let currentPos = camera.translationMatrix.getTranslation();
+
+    const radius = currentPos.length();
+
+    const newRadius = clamp(1, radius + event.deltaY * 0.03, 100);
+
+    const newPos = currentPos.normalize().times(newRadius);
+
+    camera.translationMatrix.setTranslation(newPos);
+});
+
 // mouse down must occur within canvas
+// check that it's mouse button 1
 window.addEventListener("mousedown", event => {
+    // must be left mouse button
+    if (event.button !== 0) return;
+
     const canvasRect = canvas.getBoundingClientRect();
 
     if (event.clientX > canvasRect.left && event.clientX < canvasRect.right &&
@@ -92,6 +130,11 @@ window.addEventListener("mousemove", event => {
             theta,
             phi
         } = cartesianToSpherical(currentPos);
+
+        console.log({
+            theta: radiansToDegrees(theta),
+            phi: radiansToDegrees(phi)
+        });
 
         // now add deltas to theta and phi, then convert back to cartesian
         // I'm subtracting the delta angles now because of the definitions of theta and phi that I'm using

@@ -82,7 +82,7 @@ canvas.addEventListener("mousemove", event => {
         // we don't care about total offset from the corner of the element
         // we just care about the delta from the previous mouse event
 
-        const deltaX = event.offsetX - x; // so moving cursor right is +delta, left is -delta
+        const deltaX_px = event.offsetX - x; // so moving cursor right is +delta, left is -delta
         const deltaY_px = event.offsetY - y; // moving cursor down is +delta, up is -delta
 
 
@@ -97,6 +97,7 @@ canvas.addEventListener("mousemove", event => {
         // +deltaY means angle delta is positive
         // mapping [-height/2, height/2] to [-pi/2, pi/2]
 
+        const deltaX_angle = deltaX_px * Math.PI / canvas.width;
         const deltaY_angle = deltaY_px * Math.PI / canvas.height;
 
         // now apply that angle to the camera's translation
@@ -104,37 +105,50 @@ canvas.addEventListener("mousemove", event => {
         // we need to find the current angle of the camera position projected onto the xy plane
 
         const camera = activeSceneInfo.cameras[0];
-        const currentTranslation = camera.translationMatrix.T;
-        const radius = currentTranslation.length();
+        let currentPos = camera.translationMatrix.getTranslation();
 
-        const currentXyAngle = Math.atan2(currentTranslation.y, currentTranslation.x);
+        // let's first convert the current translation into spherical coordinates: r, theta, phi
+        const radius = currentPos.length();
+        currentPos = currentPos.normalize();
+        const theta = Math.acos(currentPos.y);
+        const phi = Math.acos(currentPos.z / Math.sin(theta));
 
-        const newXyAngle = currentXyAngle + deltaY_angle;
+        // now add deltas to theta and phi, then convert back to cartesian
+        // I'm subtracting the delta angles now because of the definitions of theta and phi that I'm using
+        const newTheta = theta - deltaY_angle;
+        const newPhi = phi - deltaX_angle;
 
-        const newY = Math.sin(newXyAngle) * radius;
+        const newPos = new Vec3({
+            x: Math.sin(newTheta) * Math.sin(newPhi),
+            y: Math.cos(newTheta),
+            z: Math.sin(newTheta) * Math.cos(newPhi)
+        }).times(radius);
 
-        const newTranslation = new Vec3({x: currentTranslation.x, y: newY, z: currentTranslation.z}).normalize().times(radius);
-
-        camera.translationMatrix.setTranslation(newTranslation);
+        camera.translationMatrix.setTranslation(newPos);
 
         // we also need to update the rotation matrix so that the camera is still pointing at the origin
 
         camera.rotationMatrix = new Mat4({
             lookAt: new Vec3({x: 0, y: 0, z: 0}),
-            from: newTranslation
+            from: newPos
         });
 
         console.log({
+            prevX: x,
             prevY: y,
+            currX: event.offsetX,
             currY: event.offsetY,
+            deltaX_px,
+            deltaX_angle_degrees: radiansToDegrees(deltaX_angle),
             deltaY_px,
             deltaY_angle_degrees: radiansToDegrees(deltaY_angle),
-            currentTranslation,
+            currentPos,
             radius,
-            currentXyAngle_degrees: radiansToDegrees(currentXyAngle),
-            newXyAngle_degrees: radiansToDegrees(newXyAngle),
-            newY,
-            newTranslation
+            currentXyAngle_degrees: radiansToDegrees(theta),
+            newXyAngle_degrees: radiansToDegrees(newTheta),
+            currentXzAngle_degrees: radiansToDegrees(phi),
+            newXzAngle_degrees: radiansToDegrees(newPhi),
+            newPos
         });
 
 

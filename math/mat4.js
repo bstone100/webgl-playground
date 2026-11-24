@@ -112,6 +112,14 @@ export class Mat4 {
         this.m[2][3] = vec3.z;
     }
 
+    getTranslation() {
+        return new Vec3({
+            x: this.m[0][3],
+            y: this.m[1][3],
+            z: this.m[2][3]
+        });
+    }
+
     static translate({x = 0, y = 0, z = 0}) {
         return new Mat4({
             m: [

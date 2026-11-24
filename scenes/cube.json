@@ -23,7 +23,7 @@
       "animation": {
         "duration": 2000,
         "unit": "ms",
-        "iterations": "infinite",
+        "iterations": "1",
         "easing": {
           "type": "ease-in-out-cubic"
         },

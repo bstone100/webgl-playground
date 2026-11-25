@@ -2,6 +2,9 @@ import {drawSceneObject, objectToClassInstance, objectToSceneNode, resizeCanvasT
 import {Vec3} from "./math/vec3.js";
 import {Mat4} from "./math/mat4.js";
 import {cartesianToSpherical, clamp, isPointInRect, radiansToDegrees, sphericalToCartesian} from "./math/utils.js";
+import {Point2} from "./math/point2.js";
+import {Point3} from "./math/point3.js";
+import {Ray} from "./math/ray.js";
 
 const canvas = document.querySelector("canvas");
 const gl = canvas.getContext("webgl2");
@@ -50,22 +53,72 @@ selectSceneElement.addEventListener("change", setActiveScene);
 await setActiveScene();
 
 // note: we could animate the position change to make this smoother for a scroll wheel
+
+// right now we're zooming to and from the origin, which is not bad, but it isn't what the user will be expecting
+// the user might expect the scene to zoom to or from whatever's in the center of the viewport
+// or they might expect to see the scene zoom to or from whatever's under the cursor
+// we will need to be able to convert cursor position to a scene ray
 canvas.addEventListener("wheel", event => {
     event.preventDefault(); // prevent the page from being scrolled
 
+    if (event.deltaY === 0 || event.deltaMode !== event.DOM_DELTA_PIXEL) return;
+
     // console.log(event);
 
-    if (event.deltaY === 0 || event.deltaMode !== event.DOM_DELTA_PIXEL) return;
+    // let's figure out what is underneath the cursor and zoom about it
+    // I think we will be moving the camera along a ray formed by the camera's location and some 3d point under the cursor
+    // I think that 3d point is a point on the front face of the viewing frustum
+    // I think we just need to take the point in canvas coordinates and convert to viewport coordinates
 
     // find the camera again
     const camera = activeSceneInfo.cameras[0];
-    let currentPos = camera.translationMatrix.getTranslation();
 
-    const radius = currentPos.length();
 
-    const newRadius = clamp(1, radius + event.deltaY * 0.01, 100);
+    // okay this is the point in canvas space:
+    // need to adjust for device pixel ratio
+    const cursorPos_canvas = new Point2({
+        x: event.offsetX,
+        y: event.offsetY
+    });
 
-    const newPos = currentPos.normalize().times(newRadius);
+    const aspectRatio = canvas.width / canvas.height;
+    const near = 0.1;
+    const far = 1000;
+    const viewport = camera.getViewport(aspectRatio, near, far);
+
+    // map cursor pos to viewport
+    // note: near is negative
+    const cursorPos_viewport = new Point3({
+        x: cursorPos_canvas.x / canvas.clientWidth * (viewport.right - viewport.left) + viewport.left,
+        y: (1 - cursorPos_canvas.y / canvas.clientHeight) * (viewport.top - viewport.bottom) + viewport.bottom,
+        z: -near
+    });
+
+    // now convert to world space: camera.worldTransform * point
+    const cursorPos_world = camera.getWorldTransform().times(cursorPos_viewport);
+
+    // now form the ray from the camera to the cursor position
+    let cameraPos = camera.getWorldTransform().getTranslation();
+
+    console.log({
+        canvas: {width: canvas.clientWidth, height: canvas.clientHeight},
+        viewport,
+        cursorPos_canvas,
+        cursorPos_viewport,
+        cursorPos_world,
+        cameraPos
+    });
+
+    const cameraToCursorRay = new Ray({
+        origin: cameraPos,
+        direction: cameraPos.minus(cursorPos_world).normalize()
+    });
+
+    // now walk the ray
+
+    const deltaY_world = event.deltaY * 0.01;
+
+    const newPos = cameraToCursorRay.at(deltaY_world);
 
     camera.translationMatrix.setTranslation(newPos);
 });
@@ -95,18 +148,23 @@ window.addEventListener("mousedown", event => {
     }
 });
 window.addEventListener("mousemove", event => {
+    if (mouseButtonDown === -1) return;
+
+    const deltaX_px = event.clientX - prevMouseX; // so moving cursor right is +delta, left is -delta
+    const deltaY_px = event.clientY - prevMouseY; // moving cursor down is +delta, up is -delta
+
+    prevMouseX = event.clientX;
+    prevMouseY = event.clientY;
+
+    if (deltaX_px === 0 && deltaY_px === 0) {
+        return;
+    }
+
     switch (mouseButtonDown) {
         // left mouse button
         case 0: {
-            const deltaX_px = event.clientX - prevMouseX; // so moving cursor right is +delta, left is -delta
-            const deltaY_px = event.clientY - prevMouseY; // moving cursor down is +delta, up is -delta
-
-            prevMouseX = event.clientX;
-            prevMouseY = event.clientY;
-
-            if (deltaX_px === 0 && deltaY_px === 0) {
-                return;
-            }
+            // now that we have added panning, the user is going to expect that after panning, rotation will no longer be about the origin
+            // but what do you rotate about instead?
 
             // need to map delta from px to radians
             const deltaX_angle = deltaX_px * Math.PI / canvas.width;
@@ -147,23 +205,6 @@ window.addEventListener("mousemove", event => {
         }
         // right mouse button
         case 2: {
-            // okay now let's pan the camera around if the right mouse button is being held
-
-            // for panning left and right, I think the desired behavior is that we translate the camera along a line perpendicular to the translation vector
-
-            // panning is actually simple, we're translating the camera along the right and up basis vectors of the camera's rotation matrix
-            // so that is just the ray formula: p = origin + t * direction, where origin is the camera's translation and direction is either the up or right rotation basis vector
-
-            const deltaX_px = event.clientX - prevMouseX; // so moving cursor right is +delta, left is -delta
-            const deltaY_px = event.clientY - prevMouseY; // moving cursor down is +delta, up is -delta
-
-            prevMouseX = event.clientX;
-            prevMouseY = event.clientY;
-
-            if (deltaX_px === 0 && deltaY_px === 0) {
-                return;
-            }
-
             // now map the deltas from px to world coordinates, similar to the mapping for zooming
 
             // let's just start with something simple

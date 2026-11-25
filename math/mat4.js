@@ -202,7 +202,7 @@ export class Mat4 {
 
     times(val) {
         if (val instanceof Vec4) {
-            return new Vec4({
+            return new val.constructor({
                 x: this.A.dot(val),
                 y: this.B.dot(val),
                 z: this.C.dot(val),

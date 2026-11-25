@@ -15,10 +15,7 @@ export class Camera extends SceneNode {
     // this builds a perspective projection matrix
     // see https://learnwebgl.brown37.net/08_projections/projections_perspective.html
     getPerspective(aspectRatio, near, far) {
-        const top = near * Math.tan(degreesToRadians(this.fieldOfView) / 2);
-        const bottom = -top;
-        const right = top * aspectRatio;
-        const left = -right;
+        const {top, bottom, left, right} = this.getViewport(aspectRatio, near, far);
         return new Mat4({
             m: [
                 [2 * near / (right - left), 0, 0, -near * (right + left) / (right - left)],
@@ -27,5 +24,13 @@ export class Camera extends SceneNode {
                 [0, 0, -1, 0]
             ]
         });
+    }
+
+    getViewport(aspectRatio, near, far) {
+        const top = near * Math.tan(degreesToRadians(this.fieldOfView) / 2);
+        const bottom = -top;
+        const right = top * aspectRatio;
+        const left = -right;
+        return {top, bottom, right, left};
     }
 }

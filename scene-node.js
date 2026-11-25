@@ -61,7 +61,8 @@ export class SceneNode {
             return this.translationMatrix.times(this.rotationMatrix).times(this.scaleMatrix);
         }
 
-        if (keyframes.length === 1) {
+        // if there is only one keyframe and it's at t = 0, don't do an animation, just take on the transform of the keyframe
+        if (keyframes.length === 1 && keyframes[0].t === 0) {
             const kf = keyframes[0];
 
             const {
@@ -73,12 +74,17 @@ export class SceneNode {
             return T.times(R).times(S);
         }
 
-        const timeElapsedMs = currentTime - startTime;
+        //  if the animation object has its own startTime then use it instead of the global one
+
+        const timeElapsedMs = currentTime - (this.animation.startTime ?? startTime);
 
         const durationMs = unit === "ms" ? duration : duration * 1000;
 
         const iteration = Math.floor(timeElapsedMs / durationMs);
 
+        // when we are done with iterating, just take on the transform of the last animation
+        // or perhaps we should stop referencing keyframes at this point
+        // in CSS it is an option to acquire the last keyframe of the animation when it finishes
         if (iteration >= iterations && iterations !== "infinite") {
             const lastKf = keyframes.at(-1);
 
@@ -89,6 +95,16 @@ export class SceneNode {
             } = lastKf;
 
             return T.times(R).times(S);
+        }
+
+        // beyond this point we will be doing an animation
+
+        // okay let's insert a keyframe at t = 0 if there isn't one already
+        // this way the object will animate from its start position to the one keyframe
+        if (keyframes[0].t !== 0) {
+            keyframes.unshift({
+                t: 0
+            });
         }
 
         let tIteration = (timeElapsedMs % durationMs) / durationMs;
@@ -115,6 +131,15 @@ export class SceneNode {
             kf1Index = Math.floor(tIteration * (keyframes.length - 1));
             kf2Index = kf1Index + 1;
         }
+
+        // let's properly handle the case when there is only one keyframe
+        // I think in this case we should insert a keyframe at t = 0 with the default transform
+        // but only do that if the one keyframe has t > 0
+        // I think we may want to always insert a keyframe at t = 0 when there isn't already a keyframe at t = 0
+        // so that the object will animate to the first listed keyframe
+        // but we shouldn't stick a keyframe at the end because we want the object to take on the transform of the last keyframe
+
+        // in the case that there is only one keyframe and the keyframe is at t = 0, then there won't be an animation, we'll set the transform to that keyframe's and exit early
 
         const kf1 = keyframes[kf1Index];
         const kf2 = keyframes[kf2Index];

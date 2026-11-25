@@ -38,6 +38,17 @@ export class Vec4 {
         return Math.sqrt(Math.pow(this.x, 2) + Math.pow(this.y, 2) + Math.pow(this.z, 2));
     }
 
+    // TODO: rewrite this class so that it extends Vec3
+    normalize() {
+        const l = this.length();
+        return new Vec4({
+            x: this.x / l,
+            y: this.y / l,
+            z: this.z / l,
+            w: this.w
+        });
+    }
+
     get r() {
         return this.x;
     }

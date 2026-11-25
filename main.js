@@ -52,6 +52,55 @@ selectSceneElement.addEventListener("change", setActiveScene);
 
 await setActiveScene();
 
+const homeButton = document.querySelector("#home-button");
+
+// I want to animate this
+homeButton.addEventListener("click", () => {
+    // find camera
+    const camera = activeSceneInfo.cameras[0];
+
+    // camera.translationMatrix.setTranslation({x: 3, y: 3, z: 3});
+    //
+    // camera.rotationMatrix = new Mat4({
+    //     lookAt: new Vec3({x: 0, y: 0, z: 0}),
+    //     from: new Vec3({x: 3, y: 3, z: 3})
+    // });
+
+    // instead of directly setting the transform, let's set an animation
+
+    // problem: scene-node.js doesn't know the start time of the animation since we're setting it right here
+    // solution: we need the camera node to have its own animation start time
+    // could just pass it into the animation object right here
+
+    // another problem: the animation system needs to release control of the camera at the end
+    // but first another problem...
+    // the slerp function is bugged, I think we are improperly using spherical coordinates
+
+    console.log({
+        cameraTransformAtClick: camera.getLocalTransform()
+    });
+
+    camera.animation = {
+        startTime: performance.now(),
+        duration: 2000,
+        unit: "ms",
+        iterations: 1,
+        easing: {type: "ease-in-out-cubic"},
+        keyframes: [
+            {
+                t: 1,
+                translationMatrix: new Mat4({
+                    position: new Vec3({x: 3, y: 3, z: 3})
+                }),
+                rotationMatrix: new Mat4({
+                    lookAt: new Vec3({x: 0, y: 0, z: 0}),
+                    from: new Vec3({x: 3, y: 3, z: 3})
+                })
+            }
+        ]
+    };
+});
+
 // note: we could animate the position change to make this smoother for a scroll wheel
 
 // right now we're zooming to and from the origin, which is not bad, but it isn't what the user will be expecting
@@ -100,14 +149,14 @@ canvas.addEventListener("wheel", event => {
     // now form the ray from the camera to the cursor position
     let cameraPos = camera.getWorldTransform().getTranslation();
 
-    console.log({
-        canvas: {width: canvas.clientWidth, height: canvas.clientHeight},
-        viewport,
-        cursorPos_canvas,
-        cursorPos_viewport,
-        cursorPos_world,
-        cameraPos
-    });
+    // console.log({
+    //     canvas: {width: canvas.clientWidth, height: canvas.clientHeight},
+    //     viewport,
+    //     cursorPos_canvas,
+    //     cursorPos_viewport,
+    //     cursorPos_world,
+    //     cameraPos
+    // });
 
     const cameraToCursorRay = new Ray({
         origin: cameraPos,
@@ -135,7 +184,7 @@ let prevMouseY = 0;
 // mouse down must occur within canvas
 // check that it's mouse button 1
 window.addEventListener("mousedown", event => {
-    console.log({type: event.type, button: event.button});
+    // console.log({type: event.type, button: event.button});
 
     if (mouseButtonDown === -1) {
         const canvasRect = canvas.getBoundingClientRect();
@@ -179,10 +228,10 @@ window.addEventListener("mousemove", event => {
                 phi
             } = cartesianToSpherical(currentPos);
 
-            console.log({
-                theta: radiansToDegrees(theta),
-                phi: radiansToDegrees(phi)
-            });
+            // console.log({
+            //     theta: radiansToDegrees(theta),
+            //     phi: radiansToDegrees(phi)
+            // });
 
             // now add deltas to theta and phi, then convert back to cartesian
             // I'm subtracting the delta angles now because of the definitions of theta and phi that I'm using
@@ -231,8 +280,7 @@ window.addEventListener("mousemove", event => {
     }
 });
 window.addEventListener("mouseup", event => {
-    // isMouseDown = false;
-    console.log({type: event.type, button: event.button});
+    // console.log({type: event.type, button: event.button});
     if (event.button === mouseButtonDown) {
         mouseButtonDown = -1;
     }

@@ -29,6 +29,20 @@ export function lerp(a, b, t) {
     }
 }
 
+export function lerpAngle(a, b, t) {
+    if (Math.abs(a - b) <= Math.PI) {
+        return lerp(a, b, t);
+    } else {
+        if (a >= b) {
+            // switch a to a negative angle
+            return lerp(-(2 * Math.PI - a), b, t);
+        } else {
+            // switch b to a negative angle
+            return lerp(a, -(2 * Math.PI - b), t);
+        }
+    }
+}
+
 export function slerp(a, b, t) {
     if (a instanceof Vec2) {
         // lerp the angles then lerp the lengths
@@ -37,21 +51,7 @@ export function slerp(a, b, t) {
         const angleA = Math.atan2(a.y, a.x);
         const angleB = Math.atan2(b.y, b.x);
 
-        let angleC;
-
-        if (angleB >= angleA) {
-            if (angleB - angleA <= Math.PI) {
-                angleC = lerp(angleA, angleB, t);
-            } else {
-                angleC = lerp(angleA, -(2 * Math.PI - angleB), t);
-            }
-        } else {
-            if (angleA - angleB <= Math.PI) {
-                angleC = lerp(angleA, angleB, t);
-            } else {
-                angleC = lerp(-(2 * Math.PI - angleA), angleB, t);
-            }
-        }
+        const angleC = lerpAngle(angleA, angleB, t);
 
         // lerp the length
         const lengthC = lerp(a.length(), b.length(), t);
@@ -60,14 +60,26 @@ export function slerp(a, b, t) {
     } else if (a instanceof Vec3 || a instanceof Vec4) {
         // we're slerping the 2d projections of the 3d vectors onto the xy plane and the xz plane
         // this gives us two 2d vectors that together form the final slerped 3d vector
-        const xyVec = slerp(new Vec2({x: a.x, y: a.y}), new Vec2({x: b.x, y: b.y}), t).normalize();
-        const xzVec = slerp(new Vec2({x: a.x, y: a.z}), new Vec2({x: b.x, y: b.z}), t).normalize();
+        // const xyVec = slerp(new Vec2({x: a.x, y: a.y}), new Vec2({x: b.x, y: b.y}), t).normalize();
+        // const xzVec = slerp(new Vec2({x: a.x, y: a.z}), new Vec2({x: b.x, y: b.z}), t).normalize();
+        //
+        // const xyzVec = new Vec3({x: xzVec.x, y: xyVec.y, z: xzVec.y}).normalize();
 
-        const xyzVec = new Vec3({x: xzVec.x, y: xyVec.y, z: xzVec.y}).normalize();
+        // the above implementation was sus let me rewrite it
+        // this time let's convert both vectors to spherical coordinates, lerp all 3 properties, then convert back to cartesian
 
-        const length = lerp(a.length(), b.length(), t);
+        // wait hold on, we can't just lerp angles, we need to lerp angles specially, like what we did above for Vec2 slerp
 
-        return xyzVec.times(length);
+        const aSpherical = cartesianToSpherical(a);
+        const bSpherical = cartesianToSpherical(b);
+
+        const c = {
+            radius: lerp(aSpherical.radius, bSpherical.radius, t),
+            theta: lerpAngle(aSpherical.theta, bSpherical.theta, t),
+            phi: lerpAngle(aSpherical.phi, bSpherical.phi, t)
+        };
+
+        return sphericalToCartesian(c);
     } else if (a instanceof Mat4) {
         // slerp the 3 basis vectors as well as the translation
         return new Mat4({

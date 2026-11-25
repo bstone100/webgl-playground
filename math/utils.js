@@ -178,7 +178,9 @@ export function isPointInRect(x, y, rect) {
     return x > rect.left && x < rect.right && y > rect.top && y < rect.bottom;
 }
 
-
+export function distance(a, b) {
+    return a.minus(b).length();
+}
 
 
 

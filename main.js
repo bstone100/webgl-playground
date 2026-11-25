@@ -1,7 +1,14 @@
 import {drawSceneObject, objectToClassInstance, objectToSceneNode, resizeCanvasToDisplaySize} from "./helpers.js";
 import {Vec3} from "./math/vec3.js";
 import {Mat4} from "./math/mat4.js";
-import {cartesianToSpherical, clamp, isPointInRect, radiansToDegrees, sphericalToCartesian} from "./math/utils.js";
+import {
+    cartesianToSpherical,
+    clamp,
+    distance,
+    isPointInRect,
+    radiansToDegrees,
+    sphericalToCartesian
+} from "./math/utils.js";
 import {Point2} from "./math/point2.js";
 import {Point3} from "./math/point3.js";
 import {Ray} from "./math/ray.js";
@@ -59,20 +66,40 @@ homeButton.addEventListener("click", () => {
     const camera = activeSceneInfo.cameras[0];
 
     // animate camera back to a home position
+    // do we want the option to animate with a particular velocity instead of a total duration?
+    // what would that unit be?
+    // could be world units per second
+    // let's say we want the speed to be 10 world units per second
+    // how does that map to a duration
+
+    // we can also make it accelerate by setting an easing curve
+
+    const homePos = new Vec3({x: 3, y: 3, z: 3});
+
+    const distanceFromHome = distance(camera.translationMatrix.getTranslation(), homePos);
+
+    const velocity = 10;
+
+    let duration = distanceFromHome / velocity;
+
+    console.log(duration);
+
+    duration = Math.min(duration, 1);
+
     camera.doSingleAnimation({
-        duration: 2000,
-        unit: "ms",
+        duration,
+        unit: "s",
         retain: true,
-        easing: {type: "ease-in-out-cubic"},
+        easing: {type: "ease-in-cubic"},
         keyframes: [
             {
                 t: 1,
                 translationMatrix: new Mat4({
-                    position: new Vec3({x: 3, y: 3, z: 3})
+                    position: homePos
                 }),
                 rotationMatrix: new Mat4({
                     lookAt: new Vec3({x: 0, y: 0, z: 0}),
-                    from: new Vec3({x: 3, y: 3, z: 3})
+                    from: homePos
                 })
             }
         ]
@@ -175,21 +202,6 @@ window.addEventListener("mousemove", event => {
     switch (mouseButtonDown) {
         // left mouse button
         case 0: {
-            // now that we have added panning, the user is going to expect that after panning, rotation will no longer be about the origin
-            // but what do you rotate about instead?
-
-            // okay let's think about this
-            // we could walk the camera's rotation Z basis vector until we hit the xz plane
-            // and then we could rotate around that point
-
-            // whatever we do, I think the camera should stay looking at the same thing
-            // meaning whatever's in the center of the viewport should stay in the center of the viewport
-
-            // yeah I don't see what else could be used as the rotation point except for where the rotation Z intersects the xz plane
-            // if we keep the camera's rotation matrix pointing at this point, then the intersection point won't change during rotation
-
-            // idk we might want to try a few things and see what feels natural
-
             // need to map delta from px to radians
             const deltaX_angle = deltaX_px * Math.PI / canvas.width;
             const deltaY_angle = deltaY_px * Math.PI / canvas.height;

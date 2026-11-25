@@ -54,20 +54,11 @@ await setActiveScene();
 
 const homeButton = document.querySelector("#home-button");
 
-// I want to animate this
 homeButton.addEventListener("click", () => {
     // find camera
     const camera = activeSceneInfo.cameras[0];
 
-    // instead of directly setting the transform, let's set an animation
-
-    // need to re-enable the animationFinished flag on the scene node
-    // should probably not be setting animation property directly
-    // also we need a way to indicate that an animation is meant to be single shot and therefore not serialized with the object
-
-    // could have a singleShot flag or could have a separate function that uses a private animation variable which won't get serialized
-    // I like the second option
-
+    // animate camera back to a home position
     camera.doSingleAnimation({
         duration: 2000,
         unit: "ms",
@@ -90,10 +81,7 @@ homeButton.addEventListener("click", () => {
 
 // note: we could animate the position change to make this smoother for a scroll wheel
 
-// right now we're zooming to and from the origin, which is not bad, but it isn't what the user will be expecting
-// the user might expect the scene to zoom to or from whatever's in the center of the viewport
-// or they might expect to see the scene zoom to or from whatever's under the cursor
-// we will need to be able to convert cursor position to a scene ray
+// zoom the camera towards or away from the part of the scene under the cursor
 canvas.addEventListener("wheel", event => {
     event.preventDefault(); // prevent the page from being scrolled
 
@@ -108,7 +96,6 @@ canvas.addEventListener("wheel", event => {
 
     // find the camera again
     const camera = activeSceneInfo.cameras[0];
-
 
     // okay this is the point in canvas space:
     // need to adjust for device pixel ratio
@@ -135,15 +122,6 @@ canvas.addEventListener("wheel", event => {
 
     // now form the ray from the camera to the cursor position
     let cameraPos = camera.getWorldTransform().getTranslation();
-
-    // console.log({
-    //     canvas: {width: canvas.clientWidth, height: canvas.clientHeight},
-    //     viewport,
-    //     cursorPos_canvas,
-    //     cursorPos_viewport,
-    //     cursorPos_world,
-    //     cameraPos
-    // });
 
     const cameraToCursorRay = new Ray({
         origin: cameraPos,
@@ -215,11 +193,6 @@ window.addEventListener("mousemove", event => {
                 phi
             } = cartesianToSpherical(currentPos);
 
-            // console.log({
-            //     theta: radiansToDegrees(theta),
-            //     phi: radiansToDegrees(phi)
-            // });
-
             // now add deltas to theta and phi, then convert back to cartesian
             // I'm subtracting the delta angles now because of the definitions of theta and phi that I'm using
 
@@ -272,9 +245,6 @@ window.addEventListener("mouseup", event => {
         mouseButtonDown = -1;
     }
 });
-
-
-
 
 activeSceneInfo.startTime = performance.now();
 

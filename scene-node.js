@@ -45,46 +45,21 @@ export class SceneNode {
         return this.translationMatrix.times(this.rotationMatrix).times(this.scaleMatrix);
     }
 
-    // this will apply a single shot animation
     // note: could return a Promise that fulfills when the animation finishes
-
-    // what is the behavior when there is already a single shot animation running?
-    // I think we should immediately start the new animation, but we must first properly end the current animation
-    // and by end I mean apply the retain policy now
     doSingleAnimation(animation) {
         if (!animation) return;
         animation?.keyframes.sort((a, b) => a.t - b.t);
 
-        // apply the retain policy right now
-        if (this.#singleShotAnimation) {
-            if (this.#singleShotAnimation.retain) {
-                // take the current location of the object
-                // we need to call getLocalTransform(), take the slerped transform and then set the default transform to it
+        // if we were in the middle of a single shot animation we need to end it right now and apply the retain policy
+        if (this.#singleShotAnimation && this.#singleShotAnimation.retain) {
+            const localTransform = this.getLocalTransform({
+                startTime: this.#singleShotAnimation.startTime,
+                currentTime: performance.now()
+            });
 
-                // we need the slerped transform split into translation, rotation, scale
-                // can we slerp those matrices individually?
-                // I think we can but I'm not sure so we need to test it
-
-                // also, given a transform matrix with rotation and scale, can we break it into a separate rotation and scale matrix?
-                // yes, I think to get the rotation basis vectors just normalize the basis vectors
-                // to get the scales take the length of each basis vector
-
-                // but it would be cleaner if we kept them separate, I think
-
-                // I think I am seeing an accumulation of floating point error from this strategy but I could be mistaken
-                // let's try keeping the matrix parts separate
-
-                // that didn't make any difference
-
-                const localTransform = this.getLocalTransform({
-                    startTime: this.#singleShotAnimation.startTime,
-                    currentTime: performance.now()
-                });
-
-                this.translationMatrix = localTransform.getTranslationMatrix();
-                this.rotationMatrix = localTransform.getRotationMatrix();
-                this.scaleMatrix = localTransform.getScaleMatrix();
-            }
+            this.translationMatrix = localTransform.getTranslationMatrix();
+            this.rotationMatrix = localTransform.getRotationMatrix();
+            this.scaleMatrix = localTransform.getScaleMatrix();
         }
 
         // now we can just swap the reference to point to the new single shot animation

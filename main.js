@@ -108,16 +108,9 @@ canvas.addEventListener("wheel", event => {
 
     // console.log(event);
 
-    // let's figure out what is underneath the cursor and zoom about it
-    // I think we will be moving the camera along a ray formed by the camera's location and some 3d point under the cursor
-    // I think that 3d point is a point on the front face of the viewing frustum
-    // I think we just need to take the point in canvas coordinates and convert to viewport coordinates
-
     // find the camera again
     const camera = activeSceneInfo.cameras[0];
 
-    // okay this is the point in canvas space:
-    // need to adjust for device pixel ratio
     const cursorPos_canvas = new Point2({
         x: event.offsetX,
         y: event.offsetY
@@ -126,15 +119,15 @@ canvas.addEventListener("wheel", event => {
     const aspectRatio = canvas.width / canvas.height;
     const viewport = camera.getViewport(aspectRatio);
 
-    // map cursor pos to viewport
-    // note: near is negative
+    // convert cursor position from canvas space to camera space
+    // this is a point somewhere on the viewport which is the near face of the viewing frustum
     const cursorPos_viewport = new Point3({
         x: cursorPos_canvas.x / canvas.clientWidth * (viewport.right - viewport.left) + viewport.left,
         y: (1 - cursorPos_canvas.y / canvas.clientHeight) * (viewport.top - viewport.bottom) + viewport.bottom,
         z: -camera.near
     });
 
-    // now convert to world space: camera.worldTransform * point
+    // now convert to world space
     const cursorPos_world = camera.getWorldTransform().times(cursorPos_viewport);
 
     // now form the ray from the camera to the cursor position
@@ -145,37 +138,15 @@ canvas.addEventListener("wheel", event => {
         direction: cameraPos.minus(cursorPos_world).normalize()
     });
 
-    // okay we have a problem
-    // the problem is that the direction vector is fluctuating by very small amounts, but this is having large impacts on the scene
-    // it could be that normalizing the direction is introducing error
-    // the direction should be the exact same every zoom iteration since we're not rotating the camera
-
-    // let me try not normalizing the direction
-    // if we don't normalize the direction then deltaY_world needs to be adjusted before calculating
-
-    // I see fluctuation even without normalizing the direction
-    // I see a visual fluctuation despite not seeing the direction vector fluctuate
-
-    // the problem must be due to the animation
-    // I suspect slerping is causing the camera to take an indirect path to the target
-    // and then when the animation is cut off part way, the camera is now somewhere on an arc, deviated from the linear path
-    // we need to make it an animation setting whether we want to slerp or lerp the translation matrix
-    // we probably want to lerp by default
-
-    console.log(cameraToCursorRay);
-
     // now walk the ray
 
-    const deltaZ_world = event.deltaY * 0.01;
+    const delta_world = event.deltaY * 0.01;
 
-    const newPos = cameraToCursorRay.at(deltaZ_world);
+    const newPos = cameraToCursorRay.at(delta_world);
 
-    // camera.translationMatrix.setTranslation(newPos);
-
-    // let's try animating instead of setting the translation directly
-
+    // animate the camera to its new position
     camera.doSingleAnimation({
-        duration: 500,
+        duration: 100,
         unit: "ms",
         retain: true,
         easing: "ease-in-out-cubic",

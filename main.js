@@ -178,34 +178,76 @@ window.addEventListener("mousemove", event => {
             // now that we have added panning, the user is going to expect that after panning, rotation will no longer be about the origin
             // but what do you rotate about instead?
 
+            // okay let's think about this
+            // we could walk the camera's rotation Z basis vector until we hit the xz plane
+            // and then we could rotate around that point
+
+            // whatever we do, I think the camera should stay looking at the same thing
+            // meaning whatever's in the center of the viewport should stay in the center of the viewport
+
+            // yeah I don't see what else could be used as the rotation point except for where the rotation Z intersects the xz plane
+            // if we keep the camera's rotation matrix pointing at this point, then the intersection point won't change during rotation
+
+            // idk we might want to try a few things and see what feels natural
+
             // need to map delta from px to radians
             const deltaX_angle = deltaX_px * Math.PI / canvas.width;
             const deltaY_angle = deltaY_px * Math.PI / canvas.height;
 
             const camera = activeSceneInfo.cameras[0];
-            let currentPos = camera.translationMatrix.getTranslation();
+            const currentPos = camera.translationMatrix.getTranslation();
+
+            // we need to take spherical coordinates relative to the point of rotation
+
+            // first find the point of rotation
+            // build a ray and then find the intersection between the ray and the xz plane
+            const rotationZ = camera.rotationMatrix.getRotationZ();
+
+            const ray = new Ray({
+                origin: currentPos,
+                direction: rotationZ
+            });
+
+            // find t of intersection given that y = 0 on the xz plane
+            const t = -ray.origin.y / ray.direction.y;
+
+            // now find the hit point
+            const hitPoint = ray.at(t);
+
+            // now use the hitPoint as the origin of rotation
+            // that means we need to adjust currentPos by hitPoint before using the spherical functions
+            // and afterward do the reverse adjustment
+            // in general, what we are doing is defining a new local coordinate system with origin at hitPoint and default rotation
+            // we need to convert currentPos from world coordinates to the local system by doing localSystemTransform.inverse * currentPos
+            // then use spherical coordinates in local space, and when we're doing, convert back to world with localSystemTransform * currentPos
+
+            // doing this is a shortcut, we can skip doing an inverse matrix and matrix multiplication because we're not changing the rotation
+            const currentPosLocal = currentPos.minus(hitPoint);
 
             const {
                 radius,
                 theta,
                 phi
-            } = cartesianToSpherical(currentPos);
+            } = cartesianToSpherical(currentPosLocal);
 
             // now add deltas to theta and phi, then convert back to cartesian
             // I'm subtracting the delta angles now because of the definitions of theta and phi that I'm using
 
-            const newPos = sphericalToCartesian({
+            const newPosLocal = sphericalToCartesian({
                 radius,
                 theta: theta - deltaY_angle,
                 phi: phi - deltaX_angle
             });
 
-            camera.translationMatrix.setTranslation(newPos);
+            // convert back to world space
+            const newPosWorld = newPosLocal.plus(hitPoint);
+
+            camera.translationMatrix.setTranslation(newPosWorld);
 
             // we also need to update the rotation matrix so that the camera is still pointing at the origin
             camera.rotationMatrix = new Mat4({
-                lookAt: new Vec3({x: 0, y: 0, z: 0}),
-                from: newPos
+                lookAt: hitPoint,
+                from: newPosWorld
             });
 
             break;

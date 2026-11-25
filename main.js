@@ -59,32 +59,19 @@ homeButton.addEventListener("click", () => {
     // find camera
     const camera = activeSceneInfo.cameras[0];
 
-    // camera.translationMatrix.setTranslation({x: 3, y: 3, z: 3});
-    //
-    // camera.rotationMatrix = new Mat4({
-    //     lookAt: new Vec3({x: 0, y: 0, z: 0}),
-    //     from: new Vec3({x: 3, y: 3, z: 3})
-    // });
-
     // instead of directly setting the transform, let's set an animation
 
-    // problem: scene-node.js doesn't know the start time of the animation since we're setting it right here
-    // solution: we need the camera node to have its own animation start time
-    // could just pass it into the animation object right here
+    // need to re-enable the animationFinished flag on the scene node
+    // should probably not be setting animation property directly
+    // also we need a way to indicate that an animation is meant to be single shot and therefore not serialized with the object
 
-    // another problem: the animation system needs to release control of the camera at the end
-    // but first another problem...
-    // the slerp function is bugged, I think we are improperly using spherical coordinates
+    // could have a singleShot flag or could have a separate function that uses a private animation variable which won't get serialized
+    // I like the second option
 
-    console.log({
-        cameraTransformAtClick: camera.getLocalTransform()
-    });
-
-    camera.animation = {
-        startTime: performance.now(),
+    camera.doSingleAnimation({
         duration: 2000,
         unit: "ms",
-        iterations: 1,
+        retain: true,
         easing: {type: "ease-in-out-cubic"},
         keyframes: [
             {
@@ -98,7 +85,7 @@ homeButton.addEventListener("click", () => {
                 })
             }
         ]
-    };
+    });
 });
 
 // note: we could animate the position change to make this smoother for a scroll wheel

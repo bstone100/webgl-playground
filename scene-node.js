@@ -3,6 +3,9 @@ import {clamp, cubicBezier, easingFunction, slerp} from "./math/utils.js";
 
 // a SceneNode has a transform but no geometry
 export class SceneNode {
+    #animationFinished = false;
+    #singleShotAnimation = null;
+
     constructor(props) {
         const {
             name = "",
@@ -32,51 +35,92 @@ export class SceneNode {
         this.animation = animation;
 
         // let's sort the animation keyframes by t
-        if (this.animation && this.animation.keyframes) {
-            this.animation.keyframes.sort((a, b) => a.t - b.t);
-        }
+        this.animation?.keyframes?.sort((a, b) => a.t - b.t);
 
         this.children = children;
         this.parent = parent;
     }
 
+    get defaultLocalTransform() {
+        return this.translationMatrix.times(this.rotationMatrix).times(this.scaleMatrix);
+    }
+
+    // this will apply a single shot animation
+    // note: could return a Promise that fulfills when the animation finishes
+    doSingleAnimation(animation) {
+        if (!animation) return;
+        animation?.keyframes.sort((a, b) => a.t - b.t);
+        this.#singleShotAnimation = {
+            ...animation,
+            iterations: 1,
+            startTime: performance.now()
+        };
+    }
+
     // let's rewrite the transform functions to account for animation
     // sceneInfo will be optionally passed, and what we need from it is just startTime and currentTime
     getLocalTransform({startTime, currentTime} = {}) {
-        if (startTime === undefined || currentTime === undefined || !this.animation) {
-            return this.translationMatrix.times(this.rotationMatrix).times(this.scaleMatrix);
+        if (startTime === undefined || currentTime === undefined) {
+            return this.defaultLocalTransform;
+        }
+
+        // pick between this.animation and this.#singleShotAnimation
+        const animation = this.#singleShotAnimation ?? this.animation;
+
+        if (!animation) {
+            return this.defaultLocalTransform;
         }
 
         // give defaults to unset properties
         const {
+            delay = 0,
             duration = 3000,
             unit = "ms",
             iterations = 1,
+            retain = true,
             easing = {type: "linear"},
             keyframes = [],
             direction = "forward"
-        } = this.animation;
+        } = animation;
 
+        // no keyframes return early
         if (keyframes.length === 0) {
-            return this.translationMatrix.times(this.rotationMatrix).times(this.scaleMatrix);
+            return this.defaultLocalTransform;
+        }
+
+        const delayMs = unit === "ms" ? delay : delay * 1000;
+
+        //  if the animation object has its own startTime then use it instead of the global one
+        const timeElapsedMs = currentTime - (animation.startTime ?? startTime) - delayMs;
+
+        // we're in the delay period, return early
+        if (timeElapsedMs < 0) {
+            return this.defaultLocalTransform;
         }
 
         // if there is only one keyframe and it's at t = 0, don't do an animation, just take on the transform of the keyframe
-        if (keyframes.length === 1 && keyframes[0].t === 0) {
-            const kf = keyframes[0];
+        // but, how long the object should "hold" the keyframe depends on other properties of the animation
+        // if there is a fixed number of iterations, then the object should hold the position of that one keyframe for iterations * duration time
+        // if it's infinite iterations, then the object should become stuck in that position
 
-            const {
-                translationMatrix: T = this.translationMatrix,
-                rotationMatrix: R = this.rotationMatrix,
-                scaleMatrix: S = this.scaleMatrix
-            } = kf;
+        // here's an idea: for this case we could insert a keyframe at t = 1 with the same properties as the one keyframe
+        // so let's postpone handling this case until after we have done the other logic
 
-            return T.times(R).times(S);
+        // if (keyframes.length === 1 && keyframes[0].t === 0) {
+        //     const kf = keyframes[0];
+        //
+        //     const {
+        //         translationMatrix: T = this.translationMatrix,
+        //         rotationMatrix: R = this.rotationMatrix,
+        //         scaleMatrix: S = this.scaleMatrix
+        //     } = kf;
+        //
+        //     return T.times(R).times(S);
+        // }
+
+        if (animation === this.animation && this.#animationFinished) {
+            return this.defaultLocalTransform;
         }
-
-        //  if the animation object has its own startTime then use it instead of the global one
-
-        const timeElapsedMs = currentTime - (this.animation.startTime ?? startTime);
 
         const durationMs = unit === "ms" ? duration : duration * 1000;
 
@@ -85,16 +129,49 @@ export class SceneNode {
         // when we are done with iterating, just take on the transform of the last animation
         // or perhaps we should stop referencing keyframes at this point
         // in CSS it is an option to acquire the last keyframe of the animation when it finishes
+
+        // there may be cases where we want an animation to remove itself from the object when it's done
+
+        // okay I've added a boolean retain property to animations
+        // true means at the end of the iterations we should set this object's default transforms to those of the last keyframe
+        // false means we should not do that
+        // in the true case, we should only do this action once, at the end of animation, don't continually apply the last keyframe every frame afterward
+        // we should set a flag on the animation object when it is finished
+
+
+
         if (iteration >= iterations && iterations !== "infinite") {
-            const lastKf = keyframes.at(-1);
 
-            const {
-                translationMatrix: T = this.translationMatrix,
-                rotationMatrix: R = this.rotationMatrix,
-                scaleMatrix: S = this.scaleMatrix
-            } = lastKf;
+            // we've made it past last iteration
 
-            return T.times(R).times(S);
+            // conditionally apply the retain policy
+            // we need to account for the direction property
+            // if the direction is reversed take the first keyframe
+            // if the direction was alternate and iterations is even, then take the first keyframe
+            // if direction is alternate and iterations is odd, take last keyframe
+
+            if (retain) {
+                let kf;
+                if (direction === "forward") kf = keyframes.at(-1);
+                if (direction === "reverse") kf = keyframes[0];
+                if (direction === "alternate" && iterations % 2 === 1) kf = keyframes.at(-1);
+                if (direction === "alternate" && iterations % 2 === 0) kf = keyframes[0];
+
+                if (kf.translationMatrix) this.translationMatrix = kf.translationMatrix;
+                if (kf.rotationMatrix) this.rotationMatrix = kf.rotationMatrix;
+                if (kf.scaleMatrix) this.scaleMatrix = kf.scaleMatrix;
+            }
+
+            // if this was a single shot animation we should remove the reference
+            // the flag is only needed for this.animation because we want to retain the property after it is finished
+
+            if (animation === this.#singleShotAnimation) {
+                this.#singleShotAnimation = null;
+            } else if (animation === this.animation) {
+                this.#animationFinished = true;
+            }
+
+            return this.defaultLocalTransform;
         }
 
         // beyond this point we will be doing an animation
@@ -104,6 +181,15 @@ export class SceneNode {
         if (keyframes[0].t !== 0) {
             keyframes.unshift({
                 t: 0
+            });
+        }
+
+        // second odd case: only one keyframe at t = 0
+        // in this case let's add a duplicate of it at t = 1
+        if (keyframes.length === 1 && keyframes[0].t === 0) {
+            keyframes.push({
+                ...keyframes[0],
+                t: 1,
             });
         }
 

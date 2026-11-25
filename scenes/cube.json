@@ -21,9 +21,11 @@
         "a": 1
       },
       "animation": {
+        "delay": 500,
         "duration": 2000,
         "unit": "ms",
         "iterations": "1",
+        "retain": true,
         "easing": {
           "type": "ease-in-out-cubic"
         },

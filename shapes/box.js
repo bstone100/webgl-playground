@@ -181,12 +181,10 @@ export class Box extends SceneObject {
 
         // also pass in the projection matrix
         const aspectRatio = this.gl.canvas.width / this.gl.canvas.height;
-        const near = 0.1;
-        const far = 1000;
         this.gl.uniformMatrix4fv(
             this.gl.getUniformLocation(this.#shaderProgram, "u_projectionMatrix"),
             false,
-            camera.getPerspective(aspectRatio, near, far).toArray()
+            camera.getPerspective(aspectRatio).toArray()
         );
 
         // pass an ambient light color

@@ -210,6 +210,8 @@
       "name": "camera sitting on +z axis staring down z axis",
       "type": "Camera",
       "fieldOfView": 45,
+      "near": 0.1,
+      "far": 1000,
       "translationMatrix": {
         "type": "Mat4",
         "position": {

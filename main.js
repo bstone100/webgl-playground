@@ -105,16 +105,14 @@ canvas.addEventListener("wheel", event => {
     });
 
     const aspectRatio = canvas.width / canvas.height;
-    const near = 0.1;
-    const far = 1000;
-    const viewport = camera.getViewport(aspectRatio, near, far);
+    const viewport = camera.getViewport(aspectRatio);
 
     // map cursor pos to viewport
     // note: near is negative
     const cursorPos_viewport = new Point3({
         x: cursorPos_canvas.x / canvas.clientWidth * (viewport.right - viewport.left) + viewport.left,
         y: (1 - cursorPos_canvas.y / canvas.clientHeight) * (viewport.top - viewport.bottom) + viewport.bottom,
-        z: -near
+        z: -camera.near
     });
 
     // now convert to world space: camera.worldTransform * point

@@ -29,6 +29,8 @@ export function lerp(a, b, t) {
     }
 }
 
+// angles need to be handled specially because we could go either clockwise or counterclockwise to travel from one angle to another
+// we need to pick the shorter path, and we can do this by converting the larger angle to a negative angle
 export function lerpAngle(a, b, t) {
     if (Math.abs(a - b) <= Math.PI) {
         return lerp(a, b, t);
@@ -58,17 +60,7 @@ export function slerp(a, b, t) {
 
         return new Vec2({x: Math.cos(angleC), y: Math.sin(angleC)}).times(lengthC);
     } else if (a instanceof Vec3 || a instanceof Vec4) {
-        // we're slerping the 2d projections of the 3d vectors onto the xy plane and the xz plane
-        // this gives us two 2d vectors that together form the final slerped 3d vector
-        // const xyVec = slerp(new Vec2({x: a.x, y: a.y}), new Vec2({x: b.x, y: b.y}), t).normalize();
-        // const xzVec = slerp(new Vec2({x: a.x, y: a.z}), new Vec2({x: b.x, y: b.z}), t).normalize();
-        //
-        // const xyzVec = new Vec3({x: xzVec.x, y: xyVec.y, z: xzVec.y}).normalize();
-
-        // the above implementation was sus let me rewrite it
-        // this time let's convert both vectors to spherical coordinates, lerp all 3 properties, then convert back to cartesian
-
-        // wait hold on, we can't just lerp angles, we need to lerp angles specially, like what we did above for Vec2 slerp
+        // convert both vectors to spherical coordinates, lerp all 3 properties, then convert back to cartesian
 
         const aSpherical = cartesianToSpherical(a);
         const bSpherical = cartesianToSpherical(b);

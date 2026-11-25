@@ -1,5 +1,5 @@
 import {Mat4} from "./math/mat4.js";
-import {clamp, cubicBezier, easingFunction, slerp} from "./math/utils.js";
+import {clamp, cubicBezier, easingFunction, lerp, slerp} from "./math/utils.js";
 
 // a SceneNode has a transform but no geometry
 export class SceneNode {
@@ -47,9 +47,49 @@ export class SceneNode {
 
     // this will apply a single shot animation
     // note: could return a Promise that fulfills when the animation finishes
+
+    // what is the behavior when there is already a single shot animation running?
+    // I think we should immediately start the new animation, but we must first properly end the current animation
+    // and by end I mean apply the retain policy now
     doSingleAnimation(animation) {
         if (!animation) return;
         animation?.keyframes.sort((a, b) => a.t - b.t);
+
+        // apply the retain policy right now
+        if (this.#singleShotAnimation) {
+            if (this.#singleShotAnimation.retain) {
+                // take the current location of the object
+                // we need to call getLocalTransform(), take the slerped transform and then set the default transform to it
+
+                // we need the slerped transform split into translation, rotation, scale
+                // can we slerp those matrices individually?
+                // I think we can but I'm not sure so we need to test it
+
+                // also, given a transform matrix with rotation and scale, can we break it into a separate rotation and scale matrix?
+                // yes, I think to get the rotation basis vectors just normalize the basis vectors
+                // to get the scales take the length of each basis vector
+
+                // but it would be cleaner if we kept them separate, I think
+
+                // I think I am seeing an accumulation of floating point error from this strategy but I could be mistaken
+                // let's try keeping the matrix parts separate
+
+                // that didn't make any difference
+
+                const localTransform = this.getLocalTransform({
+                    startTime: this.#singleShotAnimation.startTime,
+                    currentTime: performance.now()
+                });
+
+                this.translationMatrix = localTransform.getTranslationMatrix();
+                this.rotationMatrix = localTransform.getRotationMatrix();
+                this.scaleMatrix = localTransform.getScaleMatrix();
+            }
+        }
+
+        // now we can just swap the reference to point to the new single shot animation
+        // in effect, we're changing the target of the previous animation mid flight and adding more time
+
         this.#singleShotAnimation = {
             ...animation,
             iterations: 1,
@@ -79,7 +119,8 @@ export class SceneNode {
             retain = true,
             easing = {type: "linear"},
             keyframes = [],
-            direction = "forward"
+            direction = "forward",
+            path = "linear"
         } = animation;
 
         // no keyframes return early
@@ -196,9 +237,6 @@ export class SceneNode {
             scaleMatrix: S2 = this.scaleMatrix
         } = kf2;
 
-        const kf1Transform = T1.times(R1).times(S1);
-        const kf2Transform = T2.times(R2).times(S2);
-
         // this is a value in [0, 1] that says how far we are in between the two keyframes
         let tKeyframe = (tIteration - kf1.t) / (kf2.t - kf1.t);
 
@@ -209,8 +247,15 @@ export class SceneNode {
             tKeyframe = easingFunction(easing.type, tKeyframe);
         }
 
-        // now finally do spherical linear interpolation between the two keyframes' transforms and return that as this object's local transform
-        return slerp(kf1Transform, kf2Transform, tKeyframe);
+        // now we are ready to do interpolation between the two keyframes
+
+        // we can move this object along a spherical or linear path
+        // in the future we could move it along a bezier curve
+        const T = path === "spherical" ? slerp(T1, T2, tKeyframe) : lerp(T1, T2, tKeyframe);
+        const R = slerp(R1, R2, tKeyframe);
+        const S = slerp(S1, S2, tKeyframe);
+
+        return T.times(R).times(S);
     }
 
     getWorldTransform(sceneInfo) {

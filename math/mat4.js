@@ -144,6 +144,40 @@ export class Mat4 {
         });
     }
 
+    getScaleX() {
+        return this.X.length();
+    }
+
+    getScaleY() {
+        return this.Y.length();
+    }
+
+    getScaleZ() {
+        return this.Z.length();
+    }
+
+    getTranslationMatrix() {
+        return new Mat4({
+            T: this.T
+        });
+    }
+
+    getRotationMatrix() {
+        return new Mat4({
+            X: this.X.normalize(),
+            Y: this.Y.normalize(),
+            Z: this.Z.normalize()
+        });
+    }
+
+    getScaleMatrix() {
+        return Mat4.scale({
+            x: this.getScaleX(),
+            y: this.getScaleY(),
+            z: this.getScaleZ()
+        });
+    }
+
     static translate({x = 0, y = 0, z = 0}) {
         return new Mat4({
             m: [

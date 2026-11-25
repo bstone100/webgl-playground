@@ -65,25 +65,17 @@ homeButton.addEventListener("click", () => {
     // find camera
     const camera = activeSceneInfo.cameras[0];
 
-    // animate camera back to a home position
-    // do we want the option to animate with a particular velocity instead of a total duration?
-    // what would that unit be?
-    // could be world units per second
-    // let's say we want the speed to be 10 world units per second
-    // how does that map to a duration
-
-    // we can also make it accelerate by setting an easing curve
-
     const homePos = new Vec3({x: 3, y: 3, z: 3});
 
     const distanceFromHome = distance(camera.translationMatrix.getTranslation(), homePos);
 
-    const velocity = 10;
+    const velocity = 20; // world units per second
 
+    // calculate the duration of the animation given the distance of the animation and a velocity of motion
+    // this means the shorter the distance, the faster the animation
     let duration = distanceFromHome / velocity;
 
-    console.log(duration);
-
+    // cap duration to one second
     duration = Math.min(duration, 1);
 
     camera.doSingleAnimation({
@@ -153,13 +145,49 @@ canvas.addEventListener("wheel", event => {
         direction: cameraPos.minus(cursorPos_world).normalize()
     });
 
+    // okay we have a problem
+    // the problem is that the direction vector is fluctuating by very small amounts, but this is having large impacts on the scene
+    // it could be that normalizing the direction is introducing error
+    // the direction should be the exact same every zoom iteration since we're not rotating the camera
+
+    // let me try not normalizing the direction
+    // if we don't normalize the direction then deltaY_world needs to be adjusted before calculating
+
+    // I see fluctuation even without normalizing the direction
+    // I see a visual fluctuation despite not seeing the direction vector fluctuate
+
+    // the problem must be due to the animation
+    // I suspect slerping is causing the camera to take an indirect path to the target
+    // and then when the animation is cut off part way, the camera is now somewhere on an arc, deviated from the linear path
+    // we need to make it an animation setting whether we want to slerp or lerp the translation matrix
+    // we probably want to lerp by default
+
+    console.log(cameraToCursorRay);
+
     // now walk the ray
 
-    const deltaY_world = event.deltaY * 0.01;
+    const deltaZ_world = event.deltaY * 0.01;
 
-    const newPos = cameraToCursorRay.at(deltaY_world);
+    const newPos = cameraToCursorRay.at(deltaZ_world);
 
-    camera.translationMatrix.setTranslation(newPos);
+    // camera.translationMatrix.setTranslation(newPos);
+
+    // let's try animating instead of setting the translation directly
+
+    camera.doSingleAnimation({
+        duration: 500,
+        unit: "ms",
+        retain: true,
+        easing: "ease-in-out-cubic",
+        keyframes: [
+            {
+                t: 1,
+                translationMatrix: new Mat4({
+                    position: newPos
+                })
+            }
+        ]
+    });
 });
 
 // block context menu so that we can use right mouse button to pan camera

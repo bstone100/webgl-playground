@@ -1,5 +1,5 @@
 import {Mat4} from "./math/mat4.js";
-import {clamp, cubicBezier, easingFunction, lerp, slerp} from "./math/utils.js";
+import {clamp, cubicBezier, easingFunction, lerp, lerpTransform, slerp} from "./math/utils.js";
 
 // a SceneNode has a transform but no geometry
 export class SceneNode {
@@ -212,6 +212,9 @@ export class SceneNode {
             scaleMatrix: S2 = this.scaleMatrix
         } = kf2;
 
+        const kf1Transform = T1.times(R1).times(S1);
+        const kf2Transform = T2.times(R2).times(S2);
+
         // this is a value in [0, 1] that says how far we are in between the two keyframes
         let tKeyframe = (tIteration - kf1.t) / (kf2.t - kf1.t);
 
@@ -223,14 +226,7 @@ export class SceneNode {
         }
 
         // now we are ready to do interpolation between the two keyframes
-
-        // we can move this object along a spherical or linear path
-        // in the future we could move it along a bezier curve
-        const T = path === "spherical" ? slerp(T1, T2, tKeyframe) : lerp(T1, T2, tKeyframe);
-        const R = slerp(R1, R2, tKeyframe);
-        const S = slerp(S1, S2, tKeyframe);
-
-        return T.times(R).times(S);
+        return lerpTransform(kf1Transform, kf2Transform, tKeyframe, path);
     }
 
     getWorldTransform(sceneInfo) {

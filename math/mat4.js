@@ -125,7 +125,7 @@ export class Mat4 {
             x: this.m[0][0],
             y: this.m[1][0],
             z: this.m[2][0]
-        });
+        }).normalize();
     }
 
     getRotationY() {
@@ -133,7 +133,7 @@ export class Mat4 {
             x: this.m[0][1],
             y: this.m[1][1],
             z: this.m[2][1]
-        });
+        }).normalize();
     }
 
     getRotationZ() {
@@ -141,7 +141,7 @@ export class Mat4 {
             x: this.m[0][2],
             y: this.m[1][2],
             z: this.m[2][2]
-        });
+        }).normalize();
     }
 
     getScaleX() {
@@ -156,6 +156,14 @@ export class Mat4 {
         return this.Z.length();
     }
 
+    getScale() {
+        return new Vec3({
+            x: this.getScaleX(),
+            y: this.getScaleY(),
+            z: this.getScaleZ()
+        });
+    }
+
     getTranslationMatrix() {
         return new Mat4({
             T: this.T
@@ -164,18 +172,14 @@ export class Mat4 {
 
     getRotationMatrix() {
         return new Mat4({
-            X: this.X.normalize(),
-            Y: this.Y.normalize(),
-            Z: this.Z.normalize()
+            X: this.getRotationX(),
+            Y: this.getRotationY(),
+            Z: this.getRotationZ()
         });
     }
 
     getScaleMatrix() {
-        return Mat4.scale({
-            x: this.getScaleX(),
-            y: this.getScaleY(),
-            z: this.getScaleZ()
-        });
+        return Mat4.scale(this.getScale());
     }
 
     static translate({x = 0, y = 0, z = 0}) {

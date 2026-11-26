@@ -19,20 +19,6 @@ export function lerp(a, b, t) {
             y: lerp(a.y, b.y, t),
             z: lerp(a.z, b.z, t)
         });
-    } else if (a instanceof Mat4) {
-        // return new Mat4({
-        //     X: slerp(a.X, b.X, t),
-        //     Y: slerp(a.Y, b.Y, t),
-        //     Z: slerp(a.Z, b.Z, t),
-        //     T: {...lerp(a.T, b.T, t), w: 1}
-        // });
-
-        const Z = slerp(a.Z, b.Z, t);
-        const X = Vec3.up.cross(Z).normalize();
-        const Y = Z.cross(X).normalize();
-        const T = {...lerp(a.T, b.T, t), w: 1}
-
-        return new Mat4({X, Y, Z, T});
     }
 }
 
@@ -54,68 +40,52 @@ export function lerpAngle(a, b, t) {
 
 export function slerp(a, b, t) {
     if (a instanceof Vec2) {
-        // lerp the angles then lerp the lengths
+        // let's convert to polar coordinates, lerp radius and angle, then convert back
 
-        // these will both be in [0, 2pi]
-        const angleA = Math.atan2(a.y, a.x);
-        const angleB = Math.atan2(b.y, b.x);
+        const aPolar = cartesianToPolar(a);
+        const bPolar = cartesianToPolar(b);
 
-        const angleC = lerpAngle(angleA, angleB, t);
+        const cPolar = {
+            radius: lerp(aPolar.radius, bPolar.radius, t),
+            theta: lerpAngle(aPolar.theta, bPolar.theta, t)
+        };
 
-        // lerp the length
-        const lengthC = lerp(a.length(), b.length(), t);
-
-        return new Vec2({x: Math.cos(angleC), y: Math.sin(angleC)}).times(lengthC);
+        return polarToCartesian(cPolar);
     } else if (a instanceof Vec3 || a instanceof Vec4) {
         // convert both vectors to spherical coordinates, lerp all 3 properties, then convert back to cartesian
 
         const aSpherical = cartesianToSpherical(a);
         const bSpherical = cartesianToSpherical(b);
 
-        const c = {
+        const cSpherical = {
             radius: lerp(aSpherical.radius, bSpherical.radius, t),
             theta: lerpAngle(aSpherical.theta, bSpherical.theta, t),
             phi: lerpAngle(aSpherical.phi, bSpherical.phi, t)
         };
 
-        // do we need to normalize the final result?
-        // for slerping two basis vectors, both should have radius 1 so it shouldn't be necessary
-        // but I'm seeing objects get stretched which tells me that there is shearing happening in the camera's transform
-        // that means there might be periods during the camera animation where its basis vectors are not orthonormal
-        // I think they will stay normalized, so the issue must be that they are becoming non orthogonal
-
-        // yeah that explanation makes sense, if all 3 basis vectors are independently taking the fastest path to their destination, then they will not necessarily stay orthogonal during interpolation
-        // what should we do instead?
-        // one thing we could do is to just slerp the Z basis vector and then construct the X and Y vectors from the Z vector
-
-        return sphericalToCartesian(c);
-    } else if (a instanceof Mat4) {
-        // slerp the 3 basis vectors as well as the translation
-        // return new Mat4({
-        //     X: slerp(a.X, b.X, t),
-        //     Y: slerp(a.Y, b.Y, t),
-        //     Z: slerp(a.Z, b.Z, t),
-        //     T: {...slerp(a.T, b.T, t), w: 1}
-        // });
-
-        // don't slerp the three basis vectors
-
-        // just slerp the Z vector
-
-        // this is actually an interesting question
-        // let's try just slerping Z and rebuilding X and Y
-        // but this solution isn't completely correct because it doesn't account for if the matrix was rotated about Z
-
-        const Z = slerp(a.Z, b.Z, t);
-        const X = Vec3.up.cross(Z).normalize();
-        const Y = Z.cross(X).normalize();
-        const T = {...slerp(a.T, b.T, t), w: 1}
-
-        return new Mat4({X, Y, Z, T});
-
-
-
+        return sphericalToCartesian(cSpherical);
     }
+}
+
+export function lerpTransform(a, b, t, path) {
+    // handle scale, rotation, translation separately
+
+    const T = path === "spherical" ? slerp(a.getTranslation(), b.getTranslation(), t) : lerp(a.getTranslation(), b.getTranslation(), t);
+
+    const S = lerp(a.getScale(), b.getScale(), t);
+
+    // note: this only works when the matrix hasn't been rotated about Z
+    const Z = slerp(a.getRotationZ(), b.getRotationZ(), t);
+    const X = Vec3.up.cross(Z).normalize();
+    const Y = Z.cross(X).normalize();
+
+    // combine
+    return new Mat4({
+        X: X.times(S.x),
+        Y: Y.times(S.y),
+        Z: Z.times(S.z),
+        T: {...T, w: 1}
+    });
 }
 
 export function degreesToRadians(degrees) {
@@ -207,6 +177,22 @@ export function sphericalToCartesian(spherical) {
         y: Math.cos(spherical.theta),
         z: Math.sin(spherical.theta) * Math.cos(spherical.phi)
     }).times(spherical.radius);
+}
+
+export function cartesianToPolar(vec2) {
+    const radius = vec2.length();
+
+    return {
+        radius,
+        theta: Math.atan2(vec2.y, vec2.x)
+    };
+}
+
+export function polarToCartesian(polar) {
+    return new Vec2({
+        x: Math.cos(polar.theta),
+        y: Math.sin(polar.theta)
+    }).times(polar.radius);
 }
 
 export function isPointInRect(x, y, rect) {

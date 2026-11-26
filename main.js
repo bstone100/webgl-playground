@@ -78,15 +78,6 @@ homeButton.addEventListener("click", () => {
     // cap duration to one second
     duration = Math.min(duration, 1);
 
-    // bug: we need to fix the distortion that's happening when the camera animates back home from a position underneath the xz plane
-    // the rotation matrix is certainly part of the problem
-    // it should be valid to say lookAt(0,0,0) from(home), that gives the correct final matrix
-    // so that means something must be going wrong during interpolation
-
-    // I don't see this issue when the starting point is above the home point, like in the positive hemisphere of the xz plane
-
-    // something about being underneath the scene is messing with the interpolated rotation matrix, I think
-
     camera.doSingleAnimation({
         duration,
         unit: "s",
@@ -160,6 +151,7 @@ canvas.addEventListener("wheel", event => {
         unit: "ms",
         retain: true,
         easing: "ease-in-out-cubic",
+        path: "linear",
         keyframes: [
             {
                 t: 1,

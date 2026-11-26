@@ -5,6 +5,8 @@ import {SpotLight} from "./lights/spot-light.js";
 import {Camera} from "./camera.js";
 import {SceneObject} from "./scene-object.js";
 import {SceneNode} from "./scene-node.js";
+import {Point3} from "./math/point3.js";
+import {Ray} from "./math/ray.js";
 
 export function resizeCanvasToDisplaySize(canvas) {
     const dpr = window.devicePixelRatio;
@@ -184,9 +186,63 @@ export function drawSceneObject(sceneObject, sceneInfo) {
     }
 }
 
+export function canvasPosToWorld({x, y, canvas, camera}) {
+    const aspectRatio = canvas.width / canvas.height;
+    const viewport = camera.getViewport(aspectRatio);
 
+    // convert position from canvas space to camera space
+    // this is a point somewhere on the viewport, which is the near face of the viewing frustum
+    const pos_cameraSpace = new Point3({
+        x: x / canvas.clientWidth * (viewport.right - viewport.left) + viewport.left,
+        y: (1 - y / canvas.clientHeight) * (viewport.top - viewport.bottom) + viewport.bottom,
+        z: -camera.near
+    });
 
+    // now convert to world space
+    return camera.getWorldTransform().times(pos_cameraSpace);
+}
 
+export function hitTest(sceneObject, ray, hitResult) {
+    // go through the scene recursively and see how far each object is from the ray origin
+    // we should only check SceneObjects because they have geometry
+
+    // the primitive shapes can all use equations to determine an exact hit
+    // but I think what we should do here is to use the bounding box of each object
+    // it depends on the purpose of the hit test
+
+    if (!sceneObject) return;
+
+    if (sceneObject instanceof SceneObject) {
+        // do hit test
+
+        // get object bounding box
+        // we need an AABB, which is constructed from just the min and max vertex of the object
+        // so an AABB is in object space
+
+        // now to compute the intersection, we should convert the ray into object space
+        // since we just need t, we don't need to convert back
+
+        const aabb = sceneObject.getAABB();
+
+        // convert ray to object space
+        // that's object.transform.inverse * ray.origin, and direction
+
+        const worldToObject = sceneObject.getWorldTransform().toInverse();
+
+        const rayLocal = new Ray({
+            origin: worldToObject.times(ray.origin),
+            direction: worldToObject.times(ray.direction)
+        });
+
+        // now we see where the ray intersects with the 6 planes of the aabb
+    }
+
+    if (sceneObject instanceof SceneNode) {
+        for (const childNode of sceneObject.children) {
+            hitTest(childNode, ray, hitResult);
+        }
+    }
+}
 
 
 

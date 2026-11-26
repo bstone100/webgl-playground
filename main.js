@@ -1,4 +1,10 @@
-import {drawSceneObject, objectToClassInstance, objectToSceneNode, resizeCanvasToDisplaySize} from "./helpers.js";
+import {
+    canvasPosToWorld,
+    drawSceneObject, hitTest,
+    objectToClassInstance,
+    objectToSceneNode,
+    resizeCanvasToDisplaySize
+} from "./helpers.js";
 import {Vec3} from "./math/vec3.js";
 import {Mat4} from "./math/mat4.js";
 import {
@@ -110,26 +116,16 @@ canvas.addEventListener("wheel", event => {
     // console.log(event);
 
     // find the camera again
+    // note: we need to make a camera even if there weren't any declared in the scene
     const camera = activeSceneInfo.cameras[0];
 
-    const cursorPos_canvas = new Point2({
+    // get the cursor position in world space
+    const cursorPos_world = canvasPosToWorld({
         x: event.offsetX,
-        y: event.offsetY
+        y: event.offsetY,
+        canvas,
+        camera
     });
-
-    const aspectRatio = canvas.width / canvas.height;
-    const viewport = camera.getViewport(aspectRatio);
-
-    // convert cursor position from canvas space to camera space
-    // this is a point somewhere on the viewport which is the near face of the viewing frustum
-    const cursorPos_viewport = new Point3({
-        x: cursorPos_canvas.x / canvas.clientWidth * (viewport.right - viewport.left) + viewport.left,
-        y: (1 - cursorPos_canvas.y / canvas.clientHeight) * (viewport.top - viewport.bottom) + viewport.bottom,
-        z: -camera.near
-    });
-
-    // now convert to world space
-    const cursorPos_world = camera.getWorldTransform().times(cursorPos_viewport);
 
     // now form the ray from the camera to the cursor position
     let cameraPos = camera.getWorldTransform().getTranslation();
@@ -169,8 +165,10 @@ canvas.addEventListener("contextmenu", event => {
 })
 
 let mouseButtonDown = -1;
-let prevMouseX = 0;
-let prevMouseY = 0;
+let startMouseX = -1;
+let startMouseY = -1;
+let prevMouseX = -1;
+let prevMouseY = -1;
 
 // mouse down must occur within canvas
 // check that it's mouse button 1
@@ -181,12 +179,15 @@ window.addEventListener("mousedown", event => {
         const canvasRect = canvas.getBoundingClientRect();
 
         if (isPointInRect(event.clientX, event.clientY, canvasRect)) {
+            startMouseX = event.clientX;
+            startMouseY = event.clientY;
             prevMouseX = event.clientX;
             prevMouseY = event.clientY;
             mouseButtonDown = event.button;
         }
     }
 });
+
 window.addEventListener("mousemove", event => {
     if (mouseButtonDown === -1) return;
 
@@ -292,9 +293,55 @@ window.addEventListener("mousemove", event => {
         }
     }
 });
+
 window.addEventListener("mouseup", event => {
     // console.log({type: event.type, button: event.button});
     if (event.button === mouseButtonDown) {
+
+        const totalDeltaX = event.clientX - startMouseX;
+        const totalDeltaY = event.clientY - startMouseY;
+
+        // we consider this to have been a click
+        if (totalDeltaX === 0 && totalDeltaY === 0) {
+            if (mouseButtonDown === 0) {
+                // let's now detect which object the user clicked
+
+                // we need to cast a ray into the scene and see what it hits
+                // we could use the bounding box of objects, or we could do something more accurate
+
+                // first build the ray
+
+                // find the camera again
+                const camera = activeSceneInfo.cameras[0];
+
+                // need pos in canvas space, then world space
+                const canvasRect = canvas.getBoundingClientRect();
+                const x_canvas = event.clientX - canvasRect.left;
+                const y_canvas = event.clientY - canvasRect.top;
+                const cursorPos_world = canvasPosToWorld({
+                    x: x_canvas,
+                    y: y_canvas,
+                    canvas,
+                    camera
+                });
+
+                // build the ray
+                const cameraPos = camera.getWorldTransform().getTranslation();
+                const ray = new Ray({
+                    origin: cameraPos,
+                    direction: cursorPos_world.minus(cameraPos).normalize()
+                });
+
+                // now we need to run a hit test on the whole scene
+                const hitResult = {
+                    minT: Infinity,
+                    closestObject: null
+                };
+                hitTest(activeScene, ray, hitResult);
+
+            }
+        }
+
         mouseButtonDown = -1;
     }
 });

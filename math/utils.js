@@ -75,6 +75,14 @@ export function lerpTransform(a, b, t, path) {
     const S = lerp(a.getScale(), b.getScale(), t);
 
     // note: this only works when the matrix hasn't been rotated about Z
+    // let's think through how to handle all cases
+    // how do we handle the case where the matrix has only been rotated about z,
+    // so a.z and b.z are equal but x and y are different
+    // well in that case there is no point in slerping z
+    // we could slerp y then get x via cross product
+
+    // well I'll get back to this when it comes up
+
     const Z = slerp(a.getRotationZ(), b.getRotationZ(), t);
     const X = Vec3.up.cross(Z).normalize();
     const Y = Z.cross(X).normalize();

@@ -18,6 +18,7 @@ import {SpotLight} from "./lights/spot-light.js";
 import {PointLight} from "./lights/point-light.js";
 import {AmbientLight} from "./lights/ambient-light.js";
 import {Vec2} from "./math/vec2.js";
+import {Ray} from "./math/ray.js";
 
 export const classNameToClass = {
     "AmbientLight": AmbientLight,
@@ -27,6 +28,7 @@ export const classNameToClass = {
     "Mat4": Mat4,
     "Point2": Point2,
     "Point3": Point3,
+    "Ray": Ray,
     "Vec2": Vec2,
     "Vec3": Vec3,
     "Vec4": Vec4,

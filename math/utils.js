@@ -20,12 +20,19 @@ export function lerp(a, b, t) {
             z: lerp(a.z, b.z, t)
         });
     } else if (a instanceof Mat4) {
-        return new Mat4({
-            X: slerp(a.X, b.X, t),
-            Y: slerp(a.Y, b.Y, t),
-            Z: slerp(a.Z, b.Z, t),
-            T: {...lerp(a.T, b.T, t), w: 1}
-        });
+        // return new Mat4({
+        //     X: slerp(a.X, b.X, t),
+        //     Y: slerp(a.Y, b.Y, t),
+        //     Z: slerp(a.Z, b.Z, t),
+        //     T: {...lerp(a.T, b.T, t), w: 1}
+        // });
+
+        const Z = slerp(a.Z, b.Z, t);
+        const X = Vec3.up.cross(Z).normalize();
+        const Y = Z.cross(X).normalize();
+        const T = {...lerp(a.T, b.T, t), w: 1}
+
+        return new Mat4({X, Y, Z, T});
     }
 }
 
@@ -71,15 +78,43 @@ export function slerp(a, b, t) {
             phi: lerpAngle(aSpherical.phi, bSpherical.phi, t)
         };
 
+        // do we need to normalize the final result?
+        // for slerping two basis vectors, both should have radius 1 so it shouldn't be necessary
+        // but I'm seeing objects get stretched which tells me that there is shearing happening in the camera's transform
+        // that means there might be periods during the camera animation where its basis vectors are not orthonormal
+        // I think they will stay normalized, so the issue must be that they are becoming non orthogonal
+
+        // yeah that explanation makes sense, if all 3 basis vectors are independently taking the fastest path to their destination, then they will not necessarily stay orthogonal during interpolation
+        // what should we do instead?
+        // one thing we could do is to just slerp the Z basis vector and then construct the X and Y vectors from the Z vector
+
         return sphericalToCartesian(c);
     } else if (a instanceof Mat4) {
         // slerp the 3 basis vectors as well as the translation
-        return new Mat4({
-            X: slerp(a.X, b.X, t),
-            Y: slerp(a.Y, b.Y, t),
-            Z: slerp(a.Z, b.Z, t),
-            T: {...slerp(a.T, b.T, t), w: 1}
-        });
+        // return new Mat4({
+        //     X: slerp(a.X, b.X, t),
+        //     Y: slerp(a.Y, b.Y, t),
+        //     Z: slerp(a.Z, b.Z, t),
+        //     T: {...slerp(a.T, b.T, t), w: 1}
+        // });
+
+        // don't slerp the three basis vectors
+
+        // just slerp the Z vector
+
+        // this is actually an interesting question
+        // let's try just slerping Z and rebuilding X and Y
+        // but this solution isn't completely correct because it doesn't account for if the matrix was rotated about Z
+
+        const Z = slerp(a.Z, b.Z, t);
+        const X = Vec3.up.cross(Z).normalize();
+        const Y = Z.cross(X).normalize();
+        const T = {...slerp(a.T, b.T, t), w: 1}
+
+        return new Mat4({X, Y, Z, T});
+
+
+
     }
 }
 

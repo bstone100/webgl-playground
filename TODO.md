@@ -2,7 +2,7 @@
 
 - [x] implement ability to move camera around with mouse and keyboard
   - [x] rotate camera spherically
-    - [ ] figure out the logic for rotating the camera after the camera has panned
+    - [x] figure out the logic for rotating the camera after the camera has panned
   - [x] pan camera
   - [x] zoom camera
 - [ ] finish the other shapes

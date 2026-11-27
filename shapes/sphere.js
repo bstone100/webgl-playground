@@ -1,9 +1,9 @@
-import {Point3} from "../math/point3.js";
 import {SceneObject} from "../scene-object.js";
+import {sphericalToCartesian} from "../math/utils.js";
 
 export class Sphere extends SceneObject {
-    constructor(props = {}) {
-        super(props);
+    constructor(props = {}, gl) {
+        super(props, gl);
 
         const {
             radius = 0.25,
@@ -12,11 +12,10 @@ export class Sphere extends SceneObject {
 
         this.radius = radius;
         this.resolution = Math.max(resolution, 4);
+
+        this.setUp();
     }
 
-    // I'm going to go 360 degrees around the xz axis and 360 degrees around the xy axis
-    // these vertices form a surface of squares
-    // there are n * n vertices
     get vertices() {
         let vertices = [];
 
@@ -24,24 +23,45 @@ export class Sphere extends SceneObject {
         // j loop is around the xy plane
         const deltaAngle = 2 * Math.PI / this.resolution;
         for (let i = 0; i < this.resolution; i++) {
-            const xzAngle = i * deltaAngle;
-            const cosPhi = Math.cos(xzAngle);
-            const sinPhi = Math.sin(xzAngle);
+            const phi = i * deltaAngle;
             for (let j = 0; j < this.resolution; j++) {
-                const xyAngle = j * deltaAngle;
-                const cosTheta = Math.cos(xyAngle);
-                const sinTheta = Math.sin(xyAngle);
+                const theta = j * deltaAngle;
 
-                // compute xyz from angles, normalize, then multiply by radius
-                // note that z is flipped because I want to go counterclockwise around the xz plane
-                let point = new Point3({x: cosTheta * cosPhi, y: sinTheta, z: -cosTheta * sinPhi}).toUnit().times(this.radius);
-                vertices.push(point.x, point.y, point.z);
-                // what is this vertex's index?
-                // i * n + j
+                const pos = sphericalToCartesian({
+                    radius: this.radius,
+                    theta,
+                    phi
+                });
+
+                vertices.push(pos.x, pos.y, pos.z);
             }
         }
 
         return vertices;
+    }
+
+    // normals for sphere vertices are simple, just normalize the vertex
+    // we don't even really need to provide normals, but I'll do it anyways
+    get normals() {
+        let normals = [];
+
+        const deltaAngle = 2 * Math.PI / this.resolution;
+        for (let i = 0; i < this.resolution; i++) {
+            const phi = i * deltaAngle;
+            for (let j = 0; j < this.resolution; j++) {
+                const theta = j * deltaAngle;
+
+                const normal = sphericalToCartesian({
+                    radius: this.radius,
+                    theta,
+                    phi
+                }).normalize();
+
+                normals.push(normal.x, normal.y, normal.z);
+            }
+        }
+
+        return normals;
     }
 
     // each set of 4 vertices on the surface forms a face, each face has 2 triangles, each triangle needs 3 indices
@@ -65,6 +85,10 @@ export class Sphere extends SceneObject {
         }
 
         return indices;
+    }
+
+    get indicesCount() {
+        return this.resolution * this.resolution * 6;
     }
 
     rotationsToIndex(xzRotations, xyRotations) {

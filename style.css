@@ -11,8 +11,15 @@ fieldset {
     margin-bottom: 24px;
 }
 
-dt {
+legend {
+    /*font-weight: bold;*/
     font-style: italic;
+}
+
+dt {
+    font-weight: bold;
+    font-style: italic;
+    margin: 8px;
 }
 
 .horizontal {

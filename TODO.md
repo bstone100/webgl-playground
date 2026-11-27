@@ -6,6 +6,7 @@
   - [x] pan camera
   - [x] zoom camera
 - [ ] finish the other shapes
+  - [ ] add a line shape
 - [ ] move shader code and other common code out of box.js
 - [ ] add support for textures
 - [ ] add support for more material properties like metalness
@@ -15,7 +16,7 @@
   - [ ] color picker
   - [ ] change color of lights
   - [ ] animation properties
-- [ ] be able to select an object by clicking on it
+- [x] be able to select an object by clicking on it
 - [ ] add controls to create and delete primitives
 - [ ] visualize lights and cameras in the scene
 - [ ] be able to switch between different camera views
@@ -25,3 +26,10 @@
 - [ ] add support for shadows
 - [ ] allow objects to animate their location along a bezier curve
 - [ ] be able to import 3d models
+- [ ] start adding physics
+  - [ ] don't allow objects to go through each other
+    - [ ] they should have realistic collisions based on their properties
+    - [ ] so they might bounce off of each other or just stop moving
+  - [ ] make objects respect gravity
+  - [ ] could give objects their own gravity field and let other objects orbit them
+  - [ ] make motion respect physics equations

@@ -1,5 +1,7 @@
 # TODO
 
+## Features
+
 - [x] implement ability to move camera around with mouse and keyboard
   - [x] rotate camera spherically
     - [x] figure out the logic for rotating the camera after the camera has panned
@@ -33,3 +35,7 @@
   - [ ] make objects respect gravity
   - [ ] could give objects their own gravity field and let other objects orbit them
   - [ ] make motion respect physics equations
+
+## Bugs
+
+- [ ] after switching scenes, the home button isn't making the camera animate home

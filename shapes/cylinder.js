@@ -1,9 +1,11 @@
 import {Point3} from "../math/point3.js";
 import {SceneObject} from "../scene-object.js";
+import {polarToCartesian} from "../math/utils.js";
+import {Vec3} from "../math/vec3.js";
 
 export class Cylinder extends SceneObject {
-    constructor(props = {}) {
-        super(props);
+    constructor(props = {}, gl) {
+        super(props, gl);
 
         const {
             radius = 0.25,
@@ -14,93 +16,129 @@ export class Cylinder extends SceneObject {
         this.radius = radius;
         this.height = height;
         this.resolution = Math.max(resolution, 4);
+
+        this.buildMesh();
+
+        this.setUp();
     }
 
-    // here's how we're going to make a cylinder
-    // the top surface is a circle, made of a pizza of triangles
-    // the bottom surface is the same
-    // the main surface is made up of rectangular faces, each face being two triangles
-    // we need 2 * (n + 1) vertices to form all of the triangles
-    // cylinder is centered at origin
+    // I'm going to rewrite the code to make the mesh to make it cleaner
+
+    #vertices = [];
+    #normals = [];
+    #indices = [];
+
     get vertices() {
-        // let's make the vertices for the top surface
-        // that's just a circle on the xz plane, elevated by height/2
+        return this.#vertices;
+    }
 
-        let vertices = [];
+    get normals() {
+        return this.#normals;
+    }
 
-        // I am going counterclockwise around the y axis, that's why the z value is flipped
-        // need to multiply x and z by radius
+    get indices() {
+        return this.#indices;
+    }
+
+    get indicesCount() {
+        return this.#indices.length;
+    }
+
+    // let's make the vertices, normals, and indices in one function
+    buildMesh() {
+        // do the top surface first
+        // it's just a circle offset at y = height / 2
+        // do the vertices, normals, indices together
+
+        const topCenter = new Point3({x: 0, y: this.height / 2, z: 0});
+        this.#vertices.push(topCenter.x, topCenter.y, topCenter.z);
+        this.#normals.push(0, 1, 0); // pointing up
+        const indexOfTopCenter = 0;
+        const indexStartOfTopCircle = indexOfTopCenter + 1;
+
+        // do top surface edge vertices
         const deltaAngle = 2 * Math.PI / this.resolution;
         for (let i = 0; i < this.resolution; i++) {
-            const angle = i * deltaAngle;
-            const point = new Point3({x: Math.cos(angle) * this.radius, y: this.height / 2, z: -Math.sin(angle) * this.radius});
-            vertices.push(point.x, point.y, point.z);
-            // index: i
-            // with n = 25, indices [0, 24], [0, n - 1]
+            const theta = i * deltaAngle;
+            // for x and z
+            const point2 = polarToCartesian({
+                radius: this.radius,
+                theta
+            });
+            const y = this.height / 2;
+
+            this.#vertices.push(point2.x, y, point2.y);
+            this.#normals.push(0, 1, 0); // pointing up
+
+            const indexOfVertex = indexStartOfTopCircle + i;
+            const indexOfNextVertex = indexStartOfTopCircle + (i + 1) % this.resolution;
+
+            // make a triangle
+            this.#indices.push(indexOfNextVertex, indexOfTopCenter, indexOfVertex);
         }
 
-        // center of top surface
-        vertices.push(0, this.height / 2, 0);
-        // index: n
-        // with n = 25, index = 25
+        // do bottom surface
 
-        // bottom surface
+        const bottomCenter = new Point3({x: 0, y: -this.height / 2, z: 0});
+        this.#vertices.push(bottomCenter.x, bottomCenter.y, bottomCenter.z);
+        this.#normals.push(0, -1, 0);
+        const indexOfBottomCenter = indexStartOfTopCircle + this.resolution;
+        const indexStartOfBottomCircle = indexOfBottomCenter + 1;
+
         for (let i = 0; i < this.resolution; i++) {
-            const angle = i * deltaAngle;
-            const point = new Point3({x: Math.cos(angle) * this.radius, y: -this.height / 2, z: -Math.sin(angle) * this.radius});
-            vertices.push(point.x, point.y, point.z);
-            // with n = 25, indices [26, 50], [n + 1, n + 1 + n - 1]
-            // index: n + 1 + i
+            const theta = i * deltaAngle;
+            const point2 = polarToCartesian({
+                radius: this.radius,
+                theta
+            });
+            const y = -this.height / 2;
+
+            this.#vertices.push(point2.x, y, point2.y);
+            this.#normals.push(0, -1, 0);
+
+            const indexOfVertex = indexStartOfBottomCircle + i;
+            const indexOfNextVertex = indexStartOfBottomCircle + (i + 1) % this.resolution;
+
+            // make a triangle: go in reverse order so that its counterclockwise when looking from the bottom
+            this.#indices.push(indexOfVertex, indexOfBottomCenter, indexOfNextVertex);
         }
 
-        // center of bottom surface
-        vertices.push(0, -this.height / 2, 0);
-        // index = 51
-        // index: n + 1 + n
+        // now do main surface
 
-        return vertices;
-    }
+        // we need to go around the circumference making a vertex on the top and bottom
+        // we can copy the values from the existing vertices
 
-    // the top and bottom surfaces are just circles, so the triangles are pizza slices
-    // the main surface has n rectangular faces, each made of two triangles
-    get indices() {
-        // let's make top surface first
-        // we need indices [0, n - 1] and n
+        const indexStartOfMainSurface = indexStartOfBottomCircle + this.resolution;
 
-        let indices = [];
-
-        // top surface
-        // surface normal for each triangle is pointing up
         for (let i = 0; i < this.resolution; i++) {
-            // top left, bottom, top right (counterclockwise)
-            indices.push((i + 1) % this.resolution, this.resolution, i);
+            const theta = i * deltaAngle;
+            const point2 = polarToCartesian({
+                radius: this.radius,
+                theta
+            });
+
+            // make two vertices: top then bottom
+            this.#vertices.push(point2.x, this.height / 2, point2.y);
+            this.#vertices.push(point2.x, -this.height / 2, point2.y);
+
+            // both have normals pointing outward
+            const normal = new Vec3({x: point2.x, y: 0, z: point2.y}).normalize();
+            this.#normals.push(normal.x, normal.y, normal.z);
+            this.#normals.push(normal.x, normal.y, normal.z);
+
+            // now make a triangle
+
+            const indexOfTopLeftVertex = indexStartOfMainSurface + i * 2;
+            const indexOfBottomLeftVertex = indexOfTopLeftVertex + 1;
+
+            const iNext = (i + 1) % this.resolution;
+            const indexOfTopRightVertex = indexStartOfMainSurface + iNext * 2
+            const indexOfBottomRightVertex = indexOfTopRightVertex + 1;
+
+            // make two triangles
+            this.#indices.push(indexOfTopLeftVertex, indexOfBottomLeftVertex, indexOfBottomRightVertex); // bottom left triangle
+            this.#indices.push(indexOfTopLeftVertex, indexOfBottomRightVertex, indexOfTopRightVertex);
         }
-
-        // bottom surface
-        // ensure triangles are counterclockwise relative to the surface normal which is pointing down
-        for (let i = 0; i < this.resolution; i++) {
-            // we should go top right, bottom, top left so that it's counterclockwise if you were looking down the surface normal
-            indices.push(i, 2 * this.resolution + 1, (i + 1) % this.resolution);
-        }
-
-        // now time to make the main surface
-        // there are n faces
-        // each face needs two vertices from the top circle and two vertices from the bottom circle
-        for (let i = 0; i < this.resolution; i++) {
-            // let's list the 4 corners of this face
-            // we're going to need to use i to index into the top and bottom set
-            const topLeft = i;
-            const topRight = (i + 1) % this.resolution;
-            const bottomLeft = this.resolution + 1 + i;
-            const bottomRight = this.resolution + 1 + (i + 1) % this.resolution;
-
-            // now make two triangles from the face
-            // bottom left triangle
-            indices.push(topLeft, bottomLeft, bottomRight);
-            indices.push(topLeft, bottomRight, topRight);
-        }
-
-        return indices;
     }
 }
 

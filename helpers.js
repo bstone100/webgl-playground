@@ -212,6 +212,7 @@ export function hitTest(sceneObject, ray, hitResult) {
 
     if (!sceneObject) return;
 
+    // note: we could do a hit test against a bounding AABB so that we don't have to recurse if the hit fails
     if (sceneObject instanceof SceneObject) {
         // do hit test
 
@@ -234,7 +235,15 @@ export function hitTest(sceneObject, ray, hitResult) {
             direction: worldToObject.times(ray.direction)
         });
 
-        // now we see where the ray intersects with the 6 planes of the aabb
+        const {
+            hit,
+            minT
+        } = aabb.hitTest(rayLocal);
+
+        if (hit && minT < hitResult.minT) {
+            hitResult.minT = minT;
+            hitResult.closestObject = sceneObject;
+        }
     }
 
     if (sceneObject instanceof SceneNode) {

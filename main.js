@@ -339,6 +339,7 @@ window.addEventListener("mouseup", event => {
                 };
                 hitTest(activeScene, ray, hitResult);
 
+                console.log(hitResult);
             }
         }
 

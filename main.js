@@ -294,6 +294,15 @@ window.addEventListener("mousemove", event => {
     }
 });
 
+let selectedObject = null;
+
+const nameLabel = document.querySelector("#selected-object-name");
+const descriptionLabel = document.querySelector("#selected-object-description");
+const positionLabel = document.querySelector("#selected-object-position");
+const scaleLabel = document.querySelector("#selected-object-scale");
+const rotationLabel = document.querySelector("#selected-object-rotation");
+const colorLabel = document.querySelector("#selected-object-color");
+
 window.addEventListener("mouseup", event => {
     // console.log({type: event.type, button: event.button});
     if (event.button === mouseButtonDown) {
@@ -339,7 +348,27 @@ window.addEventListener("mouseup", event => {
                 };
                 hitTest(activeScene, ray, hitResult);
 
-                console.log(hitResult);
+                // console.log(hitResult);
+
+                // make the ui show the selected object
+
+                selectedObject = hitResult.closestObject;
+                if (selectedObject) {
+                    nameLabel.textContent = selectedObject.name;
+                    descriptionLabel.textContent = selectedObject.description;
+                    positionLabel.textContent = selectedObject.translationMatrix.getTranslation().toString();
+                    scaleLabel.textContent = selectedObject.scaleMatrix.getScale().toString();
+                    rotationLabel.textContent = selectedObject.rotationMatrix.getRotationEuler().toString()
+                    colorLabel.textContent = selectedObject.color.toString();
+                } else {
+                    nameLabel.textContent = "";
+                    descriptionLabel.textContent = "";
+                    positionLabel.textContent = "";
+                    scaleLabel.textContent = "";
+                    rotationLabel.textContent = "";
+                    colorLabel.textContent = "";
+                }
+
             }
         }
 

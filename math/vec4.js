@@ -49,6 +49,10 @@ export class Vec4 {
         });
     }
 
+    toString() {
+        return `(${this.x}, ${this.y}, ${this.z}, ${this.w})`;
+    }
+
     get r() {
         return this.x;
     }

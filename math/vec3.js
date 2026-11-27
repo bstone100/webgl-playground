@@ -87,6 +87,10 @@ export class Vec3 extends Vec4 {
         return this.times(-1);
     }
 
+    toString() {
+        return `(${this.x}, ${this.y}, ${this.z})`;
+    }
+
     // see: https://mathinsight.org/cross_product_formula
     cross(vec3) {
         // (a2b3−a3b2)i−(a1b3−a3b1)j+(a1b2−a2b1)k

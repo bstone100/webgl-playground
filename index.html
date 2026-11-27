@@ -11,15 +11,53 @@
     <h1>WebGL Playground</h1>
     <p>I'm going to first set up a <code>&lt;canvas&gt;</code> for WebGL2 rendering, and then I'm going to slowly but surely develop a 3D engine.</p>
 
-    <label>
-        Select scene
-        <select id="select-scene"></select>
-    </label>
-    <label>
-        Return camera to home position
-        <button id="home-button">Home</button>
-    </label>
+    <fieldset>
+        <legend>Scene Controls</legend>
+        <label>
+            Select scene
+            <select id="select-scene"></select>
+        </label>
+        <label>
+            Return camera to home position
+            <button id="home-button">Home</button>
+        </label>
+    </fieldset>
 
-    <canvas width="640" height="480"></canvas>
+    <div class="horizontal">
+        <canvas width="640" height="480"></canvas>
+
+        <fieldset>
+            <legend>Selected Object Info</legend>
+
+            <dl>
+                <dt>Name</dt>
+                <dd id="selected-object-name"></dd>
+                <dt>Description</dt>
+                <dd id="selected-object-description"></dd>
+                <dt>Position (x, y, z)</dt>
+                <dd id="selected-object-position"></dd>
+                <dt>Scale (x, y, z)</dt>
+                <dd id="selected-object-scale"></dd>
+                <dt>Rotation (x, y, z)</dt>
+                <dd id="selected-object-rotation"></dd>
+                <dt>Color (r, g, b, a)</dt>
+                <dd id="selected-object-color"></dd>
+            </dl>
+        </fieldset>
+    </div>
 </body>
 </html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+

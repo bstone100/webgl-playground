@@ -1,5 +1,5 @@
 import {Vec4} from "./vec4.js";
-import {degreesToRadians} from "./utils.js";
+import {cartesianToSpherical, degreesToRadians} from "./utils.js";
 import {Vec3} from "./vec3.js";
 
 export class Mat4 {
@@ -142,6 +142,22 @@ export class Mat4 {
             y: this.m[1][2],
             z: this.m[2][2]
         }).normalize();
+    }
+
+    getRotationEuler() {
+        // the way I've derived this is by defining R as Z * Y * X
+        // where Z is a rotation matrix made from sin and cos of a rotation of z radians about the z axis, and the same idea for Y and X
+
+        // you end up with one matrix filled with combos of sin and cos of z, y, and x
+        // then you can solve for z, y, and x using values from R
+
+        // note: it's probably better to do this using Math.atan2
+
+        const y = Math.asin(-this.X.z);
+        const x = Math.asin(this.Y.z / Math.cos(y));
+        const z = Math.asin(this.X.y / Math.cos(y));
+
+        return new Vec3({x, y, z});
     }
 
     getScaleX() {

@@ -1,5 +1,9 @@
 [
   {
+    "name": "Rectangle Scene",
+    "file": "rectangle.json"
+  },
+  {
     "name": "Sphere Scene",
     "file": "sphere.json"
   },

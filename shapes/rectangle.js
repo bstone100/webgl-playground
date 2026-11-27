@@ -3,8 +3,8 @@ import {SceneObject} from "../scene-object.js";
 // a rectangle just needs a width and height
 
 export class Rectangle extends SceneObject {
-    constructor(props = {}) {
-        super(props);
+    constructor(props = {}, gl) {
+        super(props, gl);
 
         const {
             width = 0.5,
@@ -13,6 +13,8 @@ export class Rectangle extends SceneObject {
 
         this.width = width;
         this.height = height;
+
+        this.setUp();
     }
 
     // 4 vertices for each corner
@@ -26,6 +28,16 @@ export class Rectangle extends SceneObject {
         ];
     }
 
+    // all facing +z
+    get normals() {
+        return [
+            0, 0, 1,
+            0, 0, 1,
+            0, 0, 1,
+            0, 0, 1
+        ];
+    }
+
     // 6 indices, make 2 triangles from the 4 vertices
     get indices() {
         return [
@@ -36,6 +48,10 @@ export class Rectangle extends SceneObject {
             2, // bottom right
             3 // top right
         ];
+    }
+
+    get indicesCount() {
+        return 6;
     }
 }
 

@@ -141,7 +141,7 @@ export function drawSceneObject(sceneObject, sceneInfo) {
     }
 }
 
-export function canvasPosToWorld({x, y, canvas, camera}) {
+export function canvasPosToWorld({x, y, canvas, camera, sceneInfo}) {
     const aspectRatio = canvas.width / canvas.height;
     const viewport = camera.getViewport(aspectRatio);
 
@@ -154,10 +154,10 @@ export function canvasPosToWorld({x, y, canvas, camera}) {
     });
 
     // now convert to world space
-    return camera.getWorldTransform().times(pos_cameraSpace);
+    return camera.getWorldTransform(sceneInfo).times(pos_cameraSpace);
 }
 
-export function hitTest(sceneObject, ray, hitResult) {
+export function hitTest(sceneObject, ray, hitResult, sceneInfo) {
     // go through the scene recursively and see how far each object is from the ray origin
     // we should only check SceneObjects because they have geometry
 
@@ -183,7 +183,7 @@ export function hitTest(sceneObject, ray, hitResult) {
         // convert ray to object space
         // that's object.transform.inverse * ray.origin, and direction
 
-        const worldToObject = sceneObject.getWorldTransform().toInverse();
+        const worldToObject = sceneObject.getWorldTransform(sceneInfo).toInverse();
 
         const rayLocal = new Ray({
             origin: worldToObject.times(ray.origin),
@@ -203,7 +203,7 @@ export function hitTest(sceneObject, ray, hitResult) {
 
     if (sceneObject instanceof SceneNode) {
         for (const childNode of sceneObject.children) {
-            hitTest(childNode, ray, hitResult);
+            hitTest(childNode, ray, hitResult, sceneInfo);
         }
     }
 }

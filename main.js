@@ -175,11 +175,12 @@ canvas.addEventListener("wheel", event => {
         x: event.offsetX,
         y: event.offsetY,
         canvas,
-        camera
+        camera,
+        sceneInfo: activeSceneInfo
     });
 
     // now form the ray from the camera to the cursor position
-    let cameraPos = camera.getWorldTransform().getTranslation();
+    let cameraPos = camera.getWorldTransform(activeSceneInfo).getTranslation();
 
     const cameraToCursorRay = new Ray({
         origin: cameraPos,
@@ -383,11 +384,12 @@ window.addEventListener("mouseup", event => {
                     x: x_canvas,
                     y: y_canvas,
                     canvas,
-                    camera
+                    camera,
+                    sceneInfo: activeSceneInfo
                 });
 
                 // build the ray
-                const cameraPos = camera.getWorldTransform().getTranslation();
+                const cameraPos = camera.getWorldTransform(activeSceneInfo).getTranslation();
                 const ray = new Ray({
                     origin: cameraPos,
                     direction: cursorPos_world.minus(cameraPos).normalize()
@@ -398,7 +400,7 @@ window.addEventListener("mouseup", event => {
                     minT: Infinity,
                     closestObject: null
                 };
-                hitTest(activeScene, ray, hitResult);
+                hitTest(activeScene, ray, hitResult, activeSceneInfo);
 
                 // console.log(hitResult);
 

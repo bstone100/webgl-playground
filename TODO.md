@@ -48,3 +48,27 @@
 ## Bugs
 
 - [x] after switching scenes, the home button isn't making the camera animate home
+- [ ] need selected object info in the ui to update as objects are moving
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

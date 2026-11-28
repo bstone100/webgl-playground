@@ -21,13 +21,13 @@ export class Axis extends SceneNode {
         this.axis = axis.toUpperCase();
 
         this.#cylinder = new Cylinder({
-            radius: 0.1,
+            radius: 0.02,
             height: 1,
             parent: this
         }, gl);
         this.#cone = new Cone({
-            radius: 0.15,
-            height: 0.2,
+            radius: 0.04,
+            height: 0.1,
             parent: this
         }, gl);
 

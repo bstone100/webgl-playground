@@ -211,7 +211,9 @@ export function distance(a, b) {
     return a.minus(b).length();
 }
 
-
+export function random(min, max) {
+    return lerp(min, max, Math.random());
+}
 
 
 

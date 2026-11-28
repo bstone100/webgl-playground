@@ -15,6 +15,10 @@ import {
 import {Ray} from "./math/ray.js";
 import {Box} from "./shapes/box.js";
 import {Color} from "./math/color.js";
+import {Axes} from "./composites/axes.js";
+import {Camera} from "./camera.js";
+import {PointLight} from "./lights/point-light.js";
+import {AmbientLight} from "./lights/ambient-light.js";
 
 const canvas = document.querySelector("canvas");
 const gl = canvas.getContext("webgl2");
@@ -36,26 +40,75 @@ let activeScene = null;
 let activeSceneInfo = null;
 
 async function setActiveScene() {
-    const sceneObject = await fetch(`./scenes/${selectSceneElement.value}`).then(res => res.json());
 
-    // this could be a long operation because it's loading a shader program for each object in the tree
-    // for the future: could be done in a web worker, maybe
+    // handle both json and js scenes
+    // json we need to convert it from an object to tree to a class instance tree
+    // js its already a class tree
 
-    // let's build up meta info about our scene while we parse it
-    // fill these with references to SceneNodes
-    // note that this information can change between renders if the scene graph is modified, so it should be kept in sync
-    const sceneInfo = {
-        ambientLights: [],
-        pointLights: [],
-        spotLights: [],
-        cameras: []
-    };
-    const sceneNode = objectToClassInstance(sceneObject, sceneInfo, gl);
+    const fileName = selectSceneElement.value;
 
-    if (sceneNode) {
-        activeScene = sceneNode;
-        activeSceneInfo = sceneInfo;
-        activeSceneInfo.startTime = performance.now();
+    if (fileName.endsWith(".json")) {
+        const sceneObject = await fetch(`./scenes/${fileName}`).then(res => res.json());
+
+        // we should come up with a better way of doing this
+        // probably we should make a scene class that manages this data itself
+        const sceneInfo = {
+            ambientLights: [],
+            pointLights: [],
+            spotLights: [],
+            cameras: []
+        };
+        const sceneNode = objectToClassInstance(sceneObject, sceneInfo, gl);
+
+        if (sceneNode) {
+            activeScene = sceneNode;
+            activeSceneInfo = sceneInfo;
+            activeSceneInfo.startTime = performance.now();
+
+            // let's make some axes for the scene here
+            const axes = new Axes({
+                parent: sceneNode
+            }, gl);
+        }
+    } else if (fileName.endsWith(".js")) {
+        const module = await import(`./scenes/${fileName}`);
+        const sceneRoot = module.buildScene(gl);
+
+        // now sceneRoot is like sceneNode above except that we don't have sceneInfo
+
+        if (sceneRoot) {
+            activeScene = sceneRoot;
+            activeSceneInfo = {
+                ambientLights: [],
+                pointLights: [],
+                spotLights: [],
+                cameras: []
+            };
+
+            // let's just make a default camera and point light right here and ambient light
+
+            const camera = new Camera({
+                translationMatrix: Mat4.translate({x: 2, y: 1, z: 10}),
+                rotationMatrix: new Mat4({lookAt: new Vec3(), from: new Vec3({x: 2, y: 1, z: 10})})
+            });
+            camera.setParent(sceneRoot);
+            activeSceneInfo.cameras.push(camera);
+
+            const pointLight = new PointLight({
+                translationMatrix: Mat4.translate({x: 1, y: 2, z: 1})
+            });
+            pointLight.setParent(sceneRoot);
+            activeSceneInfo.pointLights.push(pointLight);
+
+            const ambientLight = new AmbientLight();
+            ambientLight.setParent(sceneRoot);
+            activeSceneInfo.ambientLights.push(ambientLight);
+
+            const axes = new Axes({}, gl);
+            axes.setParent(sceneRoot);
+
+            activeSceneInfo.startTime = performance.now();
+        }
     }
 }
 

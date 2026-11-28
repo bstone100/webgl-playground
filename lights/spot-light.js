@@ -2,7 +2,7 @@ import {SceneNode} from "../scene-node.js";
 import {Color} from "../math/color.js";
 
 export class SpotLight extends SceneNode {
-    constructor(props) {
+    constructor(props = {}) {
         super(props);
 
         const {

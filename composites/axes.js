@@ -3,7 +3,7 @@ import {Axis} from "./axis.js";
 
 export class Axes extends SceneNode {
     #X; #Y; #Z;
-    constructor(props, gl) {
+    constructor(props = {}, gl) {
         super(props);
 
         this.#X = new Axis({

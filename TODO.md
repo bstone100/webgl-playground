@@ -10,7 +10,7 @@
 - [x] finish the other shapes
   - [x] add a line shape
   - [ ] cone shading can be improved by using multiple stacks of quads on the main surface
-- [ ] move shader code and other common code out of box.js
+- [x] move shader code and other common code out of box.js
 - [ ] add support for textures
 - [ ] add support for more material properties like metalness
 - [ ] improve cubic bezier algorithm implementation
@@ -22,6 +22,8 @@
 - [x] be able to select an object by clicking on it
   - [x] show an indicator in 3D of selection like a wireframe
     - [ ] do something more interesting than a wireframe
+    - [ ] we need to properly handle objects with children
+        - [ ] the wireframe should wrap the volume bounding the parent and its subtree
 - [ ] add controls to create and delete primitives
 - [ ] visualize lights and cameras in the scene
 - [ ] be able to switch between different camera views

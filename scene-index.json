@@ -1,5 +1,9 @@
 [
   {
+    "name": "Random Torus",
+    "file": "random-tori.js"
+  },
+  {
     "name": "Cube Scene",
     "file": "cube.json"
   },

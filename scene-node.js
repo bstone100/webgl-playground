@@ -6,7 +6,7 @@ export class SceneNode {
     #animationFinished = false;
     #singleShotAnimation = null;
 
-    constructor(props) {
+    constructor(props = {}) {
         const {
             name = "",
             description = "",
@@ -38,6 +38,7 @@ export class SceneNode {
         this.animation?.keyframes?.sort((a, b) => a.t - b.t);
 
         this.children = children;
+        this.parent = parent;
         if (parent) {
             parent.addChild(this);
         }
@@ -56,6 +57,14 @@ export class SceneNode {
         if (!child || child.parent !== this) return;
         child.parent = null;
         this.children = this.children.filter(c => c !== child);
+    }
+
+    setParent(parent) {
+        if (parent) {
+            parent.addChild(this);
+        } else if (this.parent) {
+            this.parent.removeChild(this);
+        }
     }
 
     get defaultLocalTransform() {

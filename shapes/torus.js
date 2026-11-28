@@ -1,6 +1,5 @@
-import {Vec3} from "../math/vec3.js";
 import {SceneObject} from "../scene-object.js";
-import {polarToCartesian, sphericalToCartesian} from "../math/utils.js";
+import {sphericalToCartesian} from "../math/utils.js";
 
 export class Torus extends SceneObject {
     constructor(props = {}, gl) {

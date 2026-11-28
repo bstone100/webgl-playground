@@ -1,5 +1,5 @@
 import {Vec4} from "./vec4.js";
-import {cartesianToSpherical, degreesToRadians} from "./utils.js";
+import {cartesianToSpherical, degreesToRadians, radiansToDegrees} from "./utils.js";
 import {Vec3} from "./vec3.js";
 
 export class Mat4 {
@@ -157,7 +157,7 @@ export class Mat4 {
         const x = Math.asin(this.Y.z / Math.cos(y));
         const z = Math.asin(this.X.y / Math.cos(y));
 
-        return new Vec3({x, y, z});
+        return new Vec3({x: radiansToDegrees(x), y: radiansToDegrees(y), z: radiansToDegrees(z)});
     }
 
     getScaleX() {

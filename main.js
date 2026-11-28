@@ -55,6 +55,7 @@ async function setActiveScene() {
     if (sceneNode) {
         activeScene = sceneNode;
         activeSceneInfo = sceneInfo;
+        activeSceneInfo.startTime = performance.now();
     }
 }
 
@@ -390,8 +391,6 @@ window.addEventListener("mouseup", event => {
         mouseButtonDown = -1;
     }
 });
-
-activeSceneInfo.startTime = performance.now();
 
 // this function is called every frame
 function draw() {

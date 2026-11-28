@@ -28,6 +28,8 @@
 - [ ] show world and local coordinate axes and grid planes
   - [x] axes
   - [ ] grid
+  - [ ] we need to be able to declare that things like axes are not part of the customized scene and shouldn't be serialized
+  - [ ] also you shouldn't be able to select axes or grids or lines
 - [ ] add support for skyboxes
 - [ ] add support for exporting and importing scene to a file
 - [ ] add support for shadows
@@ -43,4 +45,4 @@
 
 ## Bugs
 
-- [ ] after switching scenes, the home button isn't making the camera animate home
+- [x] after switching scenes, the home button isn't making the camera animate home

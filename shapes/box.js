@@ -7,12 +7,15 @@ export class Box extends SceneObject {
         const {
             width = 0.5,
             height = 0.5,
-            depth = 0.5
+            depth = 0.5,
+            drawMode = "triangles"
         } = props;
 
         this.width = width;
         this.height = height;
         this.depth = depth;
+
+        this.drawMode = drawMode;
 
         this.setUp();
     }
@@ -125,6 +128,48 @@ export class Box extends SceneObject {
         return this.#normals;
     }
 
+    // if we use gl.LINE_LOOP draw mode, we need 4 indices per face
+    // if we use gl.LINES we need 8 per face
+    // so I'll try gl.LINE_LOOP, actually no I'm misunderstanding gl.LINE_LOOP
+    // let's just use gl.LINES, so each pair of indices is a line
+    #lineIndices = [
+        // top face
+        0, 1,
+        1, 2,
+        2, 3,
+        3, 0,
+
+        // bottom
+        4, 5,
+        5, 6,
+        6, 7,
+        7, 4,
+
+        // right
+        8, 9,
+        9, 10,
+        10, 11,
+        11, 8,
+
+        // left
+        12, 13,
+        13, 14,
+        14, 15,
+        15, 12,
+
+        // front
+        16, 17,
+        17, 18,
+        18, 19,
+        19, 16,
+
+        // back
+        20, 21,
+        21, 22,
+        22, 23,
+        23, 20
+    ];
+
     // okay let's redo the indices
     // there are 6 faces, 24 vertices, 2 triangles per face, 12 triangles, 3 vertices per triangle, 36 indices
     #indices = [
@@ -157,11 +202,13 @@ export class Box extends SceneObject {
     ];
 
     get indices() {
-        return this.#indices;
+        // return this.#indices;
+        return this.drawMode === "lines" ? this.#lineIndices : this.#indices;
     }
 
     get indicesCount() {
-        return 36;
+        // return 36;
+        return this.drawMode === "lines" ? 48 : 36;
     }
 
 }

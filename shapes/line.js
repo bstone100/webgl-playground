@@ -13,7 +13,7 @@ export class Line extends SceneObject {
         this.p1 = new Point3(p1);
         this.p2 = new Point3(p2);
 
-        this.drawMode = gl.LINES;
+        this.drawMode = "lines";
 
         this.buildMesh();
 

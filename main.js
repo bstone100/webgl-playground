@@ -352,6 +352,10 @@ window.addEventListener("mouseup", event => {
 
                 // make the ui show the selected object
 
+                if (selectedObject && !hitResult.closestObject) {
+                    selectedObject.hideBoundingBoxLines();
+                }
+
                 selectedObject = hitResult.closestObject;
                 if (selectedObject) {
                     nameLabel.textContent = selectedObject.name;
@@ -360,6 +364,9 @@ window.addEventListener("mouseup", event => {
                     scaleLabel.textContent = selectedObject.scaleMatrix.getScale().toString();
                     rotationLabel.textContent = selectedObject.rotationMatrix.getRotationEuler().toString()
                     colorLabel.textContent = selectedObject.color.toString();
+
+                    // show a wireframe around the object
+                    selectedObject.showBoundingBoxLines();
                 } else {
                     nameLabel.textContent = "";
                     descriptionLabel.textContent = "";

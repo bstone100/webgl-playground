@@ -35,6 +35,18 @@ export class AABB {
         return this.min.z;
     }
 
+    get width() {
+        return this.right - this.left;
+    }
+
+    get height() {
+        return this.top - this.bottom;
+    }
+
+    get depth() {
+        return this.front - this.back;
+    }
+
     // return a t value
     intersectPlane(ray, plane) {
         switch (plane) {

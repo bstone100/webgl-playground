@@ -20,6 +20,7 @@
   - [ ] change color of lights
   - [ ] animation properties
 - [x] be able to select an object by clicking on it
+  - [ ] show an indicator in 3D of selection like a wireframe
 - [ ] add controls to create and delete primitives
 - [ ] visualize lights and cameras in the scene
 - [ ] be able to switch between different camera views

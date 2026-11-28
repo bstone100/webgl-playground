@@ -83,6 +83,7 @@ export function objectToClassInstance(object, sceneInfo, gl) {
     // if its an object we need to recursively call this function on its properties
     // if its an array we need to recursively call this function on its children
 
+    // this handles the children array of SceneNodes, it turns each entry into a SceneNode
     if (object instanceof Array) {
         // note: this is a waste of time for long arrays of numbers like matrices
         for (let i = 0; i < object.length; i++) {
@@ -122,52 +123,6 @@ export function objectToClassInstance(object, sceneInfo, gl) {
     } else {
         return object;
     }
-}
-
-// mainly just take the type property and make a class instance
-// this is not sufficient
-// we can't just go through the children array, we need to go through each property as well
-// we are trying to build a tree of all class instances, not just scene nodes
-// instead of looking at children array, loop through each property
-// for each property, if its an object loop through its properties, if its an array loop through its children
-export function objectToSceneNode(object, sceneInfo, gl) {
-    if (!object) return null;
-
-    let sceneNode = null;
-
-    const constructor = classNameToClass[object.type];
-    if (constructor) {
-
-        // recursively build children first
-        const childSceneNodes = [];
-        if (object.children) {
-            for (const childObject of object.children) {
-                const childSceneNode = objectToSceneNode(childObject, sceneInfo, gl);
-                if (childSceneNode) {
-                    childSceneNodes.push(childSceneNode);
-                }
-            }
-        }
-
-        // then build this class instance
-        // note: all our registered classes must have a single props argument
-        // only classes extending SceneObject will use gl parameter
-        sceneNode = new constructor({...object, children: childSceneNodes}, gl);
-
-        // then give children a reference to this class instance
-        for (const childSceneNode of childSceneNodes) {
-            childSceneNode.parent = sceneNode;
-        }
-
-        switch (constructor) {
-            case AmbientLight: sceneInfo.ambientLights.push(sceneNode); break;
-            case PointLight: sceneInfo.pointLights.push(sceneNode); break;
-            case SpotLight: sceneInfo.spotLights.push(sceneNode); break;
-            case Camera: sceneInfo.cameras.push(sceneNode); break;
-        }
-    }
-
-    return sceneNode;
 }
 
 // we draw SceneObjects not SceneNodes
@@ -252,8 +207,6 @@ export function hitTest(sceneObject, ray, hitResult) {
         }
     }
 }
-
-
 
 
 

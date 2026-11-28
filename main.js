@@ -2,22 +2,19 @@ import {
     canvasPosToWorld,
     drawSceneObject, hitTest,
     objectToClassInstance,
-    objectToSceneNode,
     resizeCanvasToDisplaySize
 } from "./helpers.js";
 import {Vec3} from "./math/vec3.js";
 import {Mat4} from "./math/mat4.js";
 import {
     cartesianToSpherical,
-    clamp,
     distance,
     isPointInRect,
-    radiansToDegrees,
     sphericalToCartesian
 } from "./math/utils.js";
-import {Point2} from "./math/point2.js";
-import {Point3} from "./math/point3.js";
 import {Ray} from "./math/ray.js";
+import {Box} from "./shapes/box.js";
+import {Color} from "./math/color.js";
 
 const canvas = document.querySelector("canvas");
 const gl = canvas.getContext("webgl2");
@@ -295,6 +292,7 @@ window.addEventListener("mousemove", event => {
 });
 
 let selectedObject = null;
+let selectionWireframe = null;
 
 const nameLabel = document.querySelector("#selected-object-name");
 const descriptionLabel = document.querySelector("#selected-object-description");
@@ -350,13 +348,26 @@ window.addEventListener("mouseup", event => {
 
                 // console.log(hitResult);
 
-                // make the ui show the selected object
+                const prevObj = selectedObject;
+                const currObj = hitResult.closestObject;
 
-                if (selectedObject && !hitResult.closestObject) {
-                    selectedObject.hideBoundingBoxLines();
+                if (prevObj && prevObj !== currObj) {
+                    prevObj.removeChild(selectionWireframe);
+                }
+                if (currObj && currObj !== prevObj) {
+                    const aabb = currObj.getAABB();
+                    selectionWireframe = new Box({
+                        width: aabb.width,
+                        height: aabb.height,
+                        depth: aabb.depth,
+                        drawMode: "lines",
+                        color: new Color({r: 0, g: 0, b: 0, a: 1})
+                    }, gl);
+                    currObj.addChild(selectionWireframe);
                 }
 
                 selectedObject = hitResult.closestObject;
+
                 if (selectedObject) {
                     nameLabel.textContent = selectedObject.name;
                     descriptionLabel.textContent = selectedObject.description;
@@ -364,9 +375,6 @@ window.addEventListener("mouseup", event => {
                     scaleLabel.textContent = selectedObject.scaleMatrix.getScale().toString();
                     rotationLabel.textContent = selectedObject.rotationMatrix.getRotationEuler().toString()
                     colorLabel.textContent = selectedObject.color.toString();
-
-                    // show a wireframe around the object
-                    selectedObject.showBoundingBoxLines();
                 } else {
                     nameLabel.textContent = "";
                     descriptionLabel.textContent = "";

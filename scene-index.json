@@ -1,5 +1,9 @@
 [
   {
+    "name": "Cube Scene",
+    "file": "cube.json"
+  },
+  {
     "name": "Line Scene",
     "file": "line.json"
   },
@@ -26,9 +30,5 @@
   {
     "name": "Sphere Scene",
     "file": "sphere.json"
-  },
-  {
-    "name": "Cube Scene",
-    "file": "cube.json"
   }
 ]

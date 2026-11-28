@@ -38,7 +38,24 @@ export class SceneNode {
         this.animation?.keyframes?.sort((a, b) => a.t - b.t);
 
         this.children = children;
-        this.parent = parent;
+        if (parent) {
+            parent.addChild(this);
+        }
+    }
+
+    addChild(child) {
+        if (!child) return;
+        if (child.parent) {
+            child.parent.removeChild(child);
+        }
+        child.parent = this;
+        this.children.push(child);
+    }
+
+    removeChild(child) {
+        if (!child || child.parent !== this) return;
+        child.parent = null;
+        this.children = this.children.filter(c => c !== child);
     }
 
     get defaultLocalTransform() {

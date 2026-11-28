@@ -2,7 +2,6 @@ import {SceneNode} from "./scene-node.js";
 import {Color} from "./math/color.js";
 import {Point3} from "./math/point3.js";
 import {AABB} from "./math/aabb.js";
-import {Box} from "./shapes/box.js";
 
 const vertexGLSL = await fetch("./materials/phong.vert.glsl").then(res => res.text());
 const fragmentGLSL = await fetch("./materials/phong.frag.glsl").then(res => res.text());
@@ -238,32 +237,7 @@ export class SceneObject extends SceneNode {
     }
 
     showBoundingBoxLines() {
-        // draw a wireframe box around this object using its aabb and lines
-        // we probably don't want to load a shader program for each line segment
-        // we should be able to take any mesh and draw it as a wireframe
-        // at the very least, we should be able to reuse the vertices already declared in box.js
 
-        // so we should be able to make a Box and then switch the mode to wireframe
-        // that means the indices array will be different but the vertices and normals will be the same
-
-        // okay I've set that up
-
-        // need to make a new Box with draw mode "lines", and dimensions set using aabb dimensions
-
-        const aabb = this.getAABB();
-        const wireframeBox = new Box({
-            width: aabb.width,
-            height: aabb.height,
-            depth: aabb.depth,
-            drawMode: "lines"
-        });
-
-        // now need to insert the box into the scene graph so that it will get drawn next render
-        // the box needs to be a child of this object because its vertices are meant to be transformed into this object's space
-
-        // note: we don't want the wireframe box to be serialized
-
-        this.children.push(wireframeBox);
     }
 
     hideBoundingBoxLines() {

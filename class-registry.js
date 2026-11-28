@@ -20,6 +20,7 @@ import {AmbientLight} from "./lights/ambient-light.js";
 import {Vec2} from "./math/vec2.js";
 import {Ray} from "./math/ray.js";
 import {AABB} from "./math/aabb.js";
+import {Line} from "./shapes/line.js";
 
 export const classNameToClass = {
     "AmbientLight": AmbientLight,
@@ -38,6 +39,7 @@ export const classNameToClass = {
     "Circle": Circle,
     "Cone": Cone,
     "Cylinder": Cylinder,
+    "Line": Line,
     "Rectangle": Rectangle,
     "Sphere": Sphere,
     "Torus": Torus,

@@ -7,8 +7,9 @@
     - [x] figure out the logic for rotating the camera after the camera has panned
   - [x] pan camera
   - [x] zoom camera
-- [ ] finish the other shapes
-  - [ ] add a line shape
+- [x] finish the other shapes
+  - [x] add a line shape
+  - [ ] cone shading can be improved by using multiple stacks of quads on the main surface
 - [ ] move shader code and other common code out of box.js
 - [ ] add support for textures
 - [ ] add support for more material properties like metalness

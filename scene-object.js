@@ -203,7 +203,7 @@ export class SceneObject extends SceneNode {
         // now finally draw
         // the count is the number of indices, unsigned short is the type of the indices (Uint16)
         // this varies by shape, needs to come from the sub class
-        this.gl.drawElements(this.gl.TRIANGLES, this.indicesCount, this.gl.UNSIGNED_SHORT, 0);
+        this.gl.drawElements(this.drawMode ?? this.gl.TRIANGLES, this.indicesCount, this.gl.UNSIGNED_SHORT, 0);
     }
 
     // note: this should be cached and only recomputed if the vertices change

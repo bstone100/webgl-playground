@@ -235,14 +235,6 @@ export class SceneObject extends SceneNode {
 
         return new AABB({min, max});
     }
-
-    showBoundingBoxLines() {
-
-    }
-
-    hideBoundingBoxLines() {
-
-    }
 }
 
 

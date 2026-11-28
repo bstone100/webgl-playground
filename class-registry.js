@@ -21,8 +21,12 @@ import {Vec2} from "./math/vec2.js";
 import {Ray} from "./math/ray.js";
 import {AABB} from "./math/aabb.js";
 import {Line} from "./shapes/line.js";
+import {Axis} from "./composites/axis.js";
+import {Axes} from "./composites/axes.js";
 
 export const classNameToClass = {
+    "Axes": Axes,
+    "Axis": Axis,
     "AmbientLight": AmbientLight,
     "PointLight": PointLight,
     "SpotLight": SpotLight,

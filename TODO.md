@@ -20,11 +20,14 @@
   - [ ] change color of lights
   - [ ] animation properties
 - [x] be able to select an object by clicking on it
-  - [ ] show an indicator in 3D of selection like a wireframe
+  - [x] show an indicator in 3D of selection like a wireframe
+    - [ ] do something more interesting than a wireframe
 - [ ] add controls to create and delete primitives
 - [ ] visualize lights and cameras in the scene
 - [ ] be able to switch between different camera views
 - [ ] show world and local coordinate axes and grid planes
+  - [x] axes
+  - [ ] grid
 - [ ] add support for skyboxes
 - [ ] add support for exporting and importing scene to a file
 - [ ] add support for shadows

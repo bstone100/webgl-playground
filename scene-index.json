@@ -1,5 +1,9 @@
 [
   {
+    "name": "Torus Scene",
+    "file": "torus.json"
+  },
+  {
     "name": "Cone Scene",
     "file": "cone.json"
   },

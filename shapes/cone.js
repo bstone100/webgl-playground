@@ -74,17 +74,6 @@ export class Cone extends SceneObject {
 
         // now build main surface
 
-        // what is the normal for the apex?
-        // there isn't one
-        // each triangle of the main surface needs the apex normal pointing in the same direction as the other two points at the bottom edge
-        // so we need to make an apex for each triangle
-
-        // the same question applies for the vertices on the bottom edge of the main surface
-        // where should their normals be pointing?
-        // we can calculate the exact normal for these vertices
-        // the normal is a function of x and z
-        // for the normal at the apex, we can find it using a point half way between the two bottom edge vertices of a surface triangle
-
         // the surface normals can be defined in spherical coordinates
         // all of the surface normals will have the same theta value, whereas phi will vary
         // theta is the angle between the surface normal and the y axis
@@ -104,16 +93,7 @@ export class Cone extends SceneObject {
             // for each iteration in this loop, we should make one bottom edge vertex, one apex vertex, a normal for both of them, and then one triangle using those two vertices plus the edge vertex from the next iteration
 
             const edgeVertex = new Point3({x: point2.x, y: -this.height / 2, z: point2.y});
-
             const apexVertex = new Point3({x: 0, y: this.height / 2, z: 0});
-
-            // now what is the normal for the edge vertex
-            // we know the x and z value, we need to calculate the y value
-            // it is derived from the slope of the surface, which has to do with the ratio of radius to height of the cone
-
-            // const phi = cartesianToPolar().theta;
-
-            // we already know phi, it's part of this loop
 
             // now we can easily grab the surface normal
             const edgeVertexNormal = sphericalToCartesian({
@@ -129,8 +109,6 @@ export class Cone extends SceneObject {
                 phi: phi + deltaAngle / 2
             });
 
-            // we can push those two vertices and normals
-
             this.#vertices.push(edgeVertex.x, edgeVertex.y, edgeVertex.z);
             this.#vertices.push(apexVertex.x, apexVertex.y, apexVertex.z);
 
@@ -138,7 +116,6 @@ export class Cone extends SceneObject {
             this.#normals.push(apexVertexNormal.x, apexVertexNormal.y, apexVertexNormal.z);
 
             // now make a triangle
-
             const indexOfEdgeVertex = indexStartOfMainSurface + i * 2;
             const indexOfApexVertex = indexOfEdgeVertex + 1;
             const iNext = (i + 1) % this.resolution;
@@ -147,50 +124,6 @@ export class Cone extends SceneObject {
             this.#indices.push(indexOfApexVertex, indexOfEdgeVertex, indexOfNextEdgeVertex);
         }
     }
-
-    // the bottom surface is a circle, like a pizza, facing down
-    // the main surface is triangles where two points are on the circle and the third is the apex
-    // get vertices() {
-    //     // do the bottom surface first
-    //     // will rotate around the y axis counterclockwise to get points on the xz plane, then adjust them down vertically
-    //
-    //     let vertices = [];
-    //
-    //     const deltaAngle = 2 * Math.PI / this.resolution;
-    //     for (let i = 0; i < this.resolution; i++) {
-    //         const angle = i * deltaAngle;
-    //         const point = new Point3({x: Math.cos(angle), y: -this.height / 2, z: -Math.sin(angle)});
-    //         vertices.push(point.x, point.y, point.z);
-    //     }
-    //
-    //     // push the center of the bottom surface
-    //     vertices.push(0, -this.height / 2, 0);
-    //
-    //     // push the apex
-    //     vertices.push(0, this.height / 2, 0);
-    //
-    //     return vertices;
-    // }
-    //
-    // get indices() {
-    //     // let's do the bottom surface first
-    //     // remember to make the triangles counterclockwise given the surface normal is pointing down
-    //
-    //     let indices = [];
-    //
-    //     const bottomCenter = this.resolution;
-    //     for (let i = 0; i < this.resolution; i++) {
-    //         indices.push(i, bottomCenter, (i + 1) % this.resolution);
-    //     }
-    //
-    //     // now do the main surface
-    //     const apex = this.resolution + 1;
-    //     for (let i = 0; i < this.resolution; i++) {
-    //         indices.push(apex, i, (i + 1) % this.resolution);
-    //     }
-    //
-    //     return indices;
-    // }
 }
 
 

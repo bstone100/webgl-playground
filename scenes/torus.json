@@ -1,0 +1,109 @@
+{
+  "name": "Torus Scene",
+  "type": "SceneNode",
+
+  "children": [
+    {
+      "name": "Torus",
+      "type": "Torus",
+      "resolution": 50
+    },
+    {
+      "name": "Ambient Light",
+      "type": "AmbientLight",
+      "color": {
+        "type": "Color",
+        "r": 0.3,
+        "g": 0.3,
+        "b": 0.3,
+        "a": 1
+      }
+    },
+    {
+      "name": "Point Light",
+      "type": "PointLight",
+      "color": {
+        "type": "Color",
+        "r": 1,
+        "g": 1,
+        "b": 1,
+        "a": 1
+      },
+      "translationMatrix": {
+        "type": "Mat4",
+        "position": {
+          "type": "Vec3",
+          "x": 1,
+          "y": 2,
+          "z": 1
+        }
+      }
+    },
+    {
+      "name": "camera sitting on +z axis staring down z axis",
+      "type": "Camera",
+      "fieldOfView": 45,
+      "near": 0.1,
+      "far": 1000,
+      "translationMatrix": {
+        "type": "Mat4",
+        "position": {
+          "type": "Vec3",
+          "x": 2,
+          "y": 1,
+          "z": 10
+        }
+      },
+      "rotationMatrix": {
+        "type": "Mat4",
+        "lookAt": {
+          "type": "Vec3",
+          "x": 0,
+          "y": 0,
+          "z": 0
+        },
+        "from": {
+          "type": "Vec3",
+          "x": 2,
+          "y": 1,
+          "z": 10
+        }
+      }
+    }
+  ]
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

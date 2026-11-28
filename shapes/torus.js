@@ -1,9 +1,10 @@
 import {Vec3} from "../math/vec3.js";
 import {SceneObject} from "../scene-object.js";
+import {polarToCartesian, sphericalToCartesian} from "../math/utils.js";
 
 export class Torus extends SceneObject {
-    constructor(props = {}) {
-        super(props);
+    constructor(props = {}, gl) {
+        super(props, gl);
 
         const {
             minorRadius = 0.25,
@@ -14,42 +15,54 @@ export class Torus extends SceneObject {
         this.minorRadius = minorRadius;
         this.majorRadius = majorRadius;
         this.resolution = Math.max(resolution, 4);
+
+        this.buildMesh();
+
+        this.setUp();
     }
 
-    // we will default the torus to be laid out on the xz plane
-    // we'll do a 360 degree outer loop counterclockwise around the y axis using majorRadius
-    // for each iteration in the outer loop, we'll do a 360 degree counterclockwise loop centered around the point from the outer loop
-    get vertices() {
-        let vertices = [];
+    // do vertices and normals together using spherical and polar coordinates
+    #vertices = [];
+    #normals = [];
 
+    get vertices() {
+        return this.#vertices;
+    }
+
+    get normals() {
+        return this.#normals;
+    }
+
+    buildMesh() {
         const deltaAngle = 2 * Math.PI / this.resolution;
         for (let i = 0; i < this.resolution; i++) {
-            const xzAngle = i * deltaAngle;
-            const cosXzAngle = Math.cos(xzAngle);
-            const sinXzAngle = Math.sin(xzAngle);
+            const phi = i * deltaAngle;
 
-            // let's identify where we are
-            // so this point will be the center of the circle that we're going to trace in the inner loop
-            const originToTorusCenter = new Vec3({x: cosXzAngle, y: 0, z: -sinXzAngle}).times(this.majorRadius);
-
-            // inner loop
+            const majorOriginToMinorOrigin = sphericalToCartesian({
+                radius: this.majorRadius,
+                theta: Math.PI / 2,
+                phi
+            });
             for (let j = 0; j < this.resolution; j++) {
-                const xyAngle = j * deltaAngle;
-                const cosXyAngle = Math.cos(xyAngle);
-                const sinXyAngle = Math.sin(xyAngle);
+                const theta = j * deltaAngle;
 
-                // now let's figure out where the vertex is
-                // we can compute a vector as if this was a sphere and then add it to the vector from the outer loop to get the vertex
+                const minorOriginToSurface = sphericalToCartesian({
+                    radius: this.minorRadius,
+                    theta,
+                    phi
+                })
 
-                const originToSphereSurface = new Vec3({x: cosXyAngle * cosXzAngle, y: sinXyAngle, z: -cosXyAngle * sinXzAngle}).toUnit().times(this.minorRadius);
+                const vertex = majorOriginToMinorOrigin.plus(minorOriginToSurface);
+                this.#vertices.push(vertex.x, vertex.y, vertex.z);
 
-                const vertex = originToTorusCenter.plus(originToSphereSurface);
-                vertices.push(vertex.x, vertex.y, vertex.z);
-                // index: i * n + j
+                const normal = minorOriginToSurface.normalize();
+                this.#normals.push(normal.x, normal.y, normal.z);
             }
         }
+    }
 
-        return vertices;
+    get indicesCount() {
+        return this.resolution * this.resolution * 6;
     }
 
     // the vertices are going to form rectangular faces across the surface

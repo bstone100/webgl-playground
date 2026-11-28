@@ -1,5 +1,9 @@
 [
   {
+    "name": "Cone Scene",
+    "file": "cone.json"
+  },
+  {
     "name": "Cylinder Scene",
     "file": "cylinder.json"
   },
